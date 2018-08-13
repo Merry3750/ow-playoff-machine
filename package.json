@@ -1,0 +1,27 @@
+{
+  "name": "ow-playoff-machine",
+  "version": "1.0.0",
+  "description": "OWL and OWC playoff machine",
+  "main": "index.js",
+  "scripts": {
+    "start": "react-scripts build",
+    "debug": "react-scripts debug",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ACMerriman/ow-playoff-machine.git"
+  },
+  "author": "Andrew Merriman",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ACMerriman/ow-playoff-machine/issues"
+  },
+  "homepage": "https://ow-playoff-machine.herokuapp.com/",
+  "dependencies": {
+    "react": "^16.4.2",
+    "react-dom": "^16.4.2",
+    "react-scripts": "^1.1.4"
+  }
+}
