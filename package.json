@@ -4,8 +4,10 @@
   "description": "OWL and OWC playoff machine",
   "main": "index.js",
   "scripts": {
-    "start": "react-scripts start",
+    "start": "npm run build && npm run server",
+    "debug": "react-scripts start",
     "build": "react-scripts build",
+    "server": "node server/server.js",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },

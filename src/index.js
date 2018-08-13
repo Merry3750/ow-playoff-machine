@@ -6,8 +6,7 @@ class Thing extends React.Component
 {
 	render()
 	{
-		let style = {color:'red'};
-		return <div style={style}>Hello world</div>;
+		return <div style={{color:'blue'}}>Hello world</div>;
 	}
 }
 
