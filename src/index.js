@@ -11,15 +11,94 @@ class Thing extends React.Component
 	}
 	render()
 	{
-		var teamList = [];
-		for(var i = 0; i < this.props.teams.competitors.length; i++)
+		// var teamList = [];
+		// for(var i = 0; i < this.props.teams.competitors.length; i++)
+		// {
+		// 	var team = this.props.teams.competitors[i];
+		// 	teamList.push(<Team key={team.competitor.id} data={team} />);
+		// }
+		// console.log(teamList);
+		// console.log(this.props.teams);
+		// return <div>{teamList}</div>;
+
+		var stageList = [];
+		for(var i = 0; i < this.props.schedule.data.stages.length; i++)
 		{
-			var team = this.props.teams.competitors[i];
-			teamList.push(<Team key={team.competitor.id} data={team} />)
+			var stage = this.props.schedule.data.stages[i];
+			if(stage.slug.startsWith("stage"))
+			{
+				stageList.push(<Stage key={stage.id} stage={stage} />);
+			}
 		}
-		console.log(teamList);
+		console.log(stageList);
 		console.log(this.props.teams);
-		return <div style={{color:'blue'}}>{teamList}</div>;
+		return <div>{stageList}</div>;
+
+
+	}
+}
+
+class Stage extends React.Component 
+{
+	constructor(props)
+	{
+		super(props);
+		console.log(props);
+	}
+	render()
+	{
+		var weekList = [];
+		for(var i = 0; i < this.props.stage.weeks.length; i++)
+		{
+			var week = this.props.stage.weeks[i];
+			weekList.push(<Week key={week.id} week={week} />);
+		}
+		return <div>{weekList}</div>;
+	}
+}
+
+class Week extends React.Component 
+{
+	constructor(props)
+	{
+		super(props);
+		console.log(props);
+	}
+	render()
+	{
+		var matchList = [];
+		for(var i = 0; i < this.props.week.matches.length; i++)
+		{
+			var match = this.props.week.matches[i];
+			if(match.conclusionStrategy === "MINIMUM")
+			{
+				matchList.push(<Match key={match.id} match={match} />)
+			}
+		}
+		return <div>{matchList}</div>;
+	}
+}
+
+class Match extends React.Component 
+{
+	constructor(props)
+	{
+		super(props);
+		console.log(props);
+	}
+	render()
+	{
+		var divStyle = {
+			padding: "5px",
+			display: "block",
+			width: "82px",
+		};
+		return (
+			<div style={divStyle}>
+				<Team key={this.props.match.competitors[0].id} team={this.props.match.competitors[0]} />
+				<Team key={this.props.match.competitors[1].id} team={this.props.match.competitors[1]} />
+			</div>
+		);
 	}
 }
 
@@ -33,16 +112,17 @@ class Team extends React.Component
 	render()
 	{
 		var divStyle = {
-			backgroundColor: "#" + this.props.data.competitor.primaryColor,
+			backgroundColor: "#" + this.props.team.primaryColor,
 			padding: "5px",
+			float: "left",
 		};
 		var imgStyle = {
 			backgroundColor: "white",
-			height: "100px",
-			borderRadius: "5px",
-			border: "5px solid #" + this.props.data.competitor.secondaryColor
+			height: "25px",
+			borderRadius: "3px",
+			border: "3px solid #" + this.props.team.secondaryColor,
 		};
-		return<div style={divStyle}><img style={imgStyle} src={this.props.data.competitor.secondaryPhoto}/></div>;
+		return<div style={divStyle}><img style={imgStyle} src={this.props.team.secondaryPhoto}/></div>;
 	}
 }
 
