@@ -66,6 +66,9 @@ class Week extends React.Component
 		var divStyle = {
 			border: "1px dashed black",
 			float: "left",
+			padding: "5px",
+			margin: "5px",
+			overflow:"auto",
 		}
 		var matchList = [];
 		for(var i = 0; i < this.props.week.matches.length; i++)
@@ -143,9 +146,11 @@ class Team extends React.Component
 			color: (areContrasting(backgroundColor, textColor) ? textColor : isBright(backgroundColor) ? "black" : "white"),
 			fontSize: "20px",
 			fontFamily: "sans-serif",
-			lineHeight: "25px",
+			width: "20px",
 			verticalAlign: "middle",
 			margin: "3px",
+			display:"inline-block",
+			textAlign: "center",
 		};
 
 		var image = <img style={imgStyle} src={team.secondaryPhoto}/>;
