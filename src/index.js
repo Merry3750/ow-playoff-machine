@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-//import './index.css';
+import './styles/index.css';
 
 class Thing extends React.Component 
 {
@@ -22,7 +22,7 @@ class Thing extends React.Component
 		}
 
 		return (
-			<div>{stageList}</div>
+			<div style={{width: "1000px"}}>{stageList}</div>
 		);
 	}
 }
@@ -40,6 +40,14 @@ class Stage extends React.Component
 			border: "1px solid black",
 			//height:"542px"
 			overflow:"auto",
+
+			// -webkit-touch-callout: none; /* iOS Safari */
+			// -webkit-user-select: none; /* Safari */
+			// -khtml-user-select: none; /* Konqueror HTML */
+			// -moz-user-select: none; /* Firefox */
+			// -ms-user-select: none; /* Internet Explorer/Edge */
+			userSelect: "none", /* Non-prefixed version, currently supported by Chrome and Opera */
+
 		}
 		var weekList = [];
 		for(var i = 0; i < this.props.stage.weeks.length; i++)
@@ -90,22 +98,69 @@ class Match extends React.Component
 	constructor(props)
 	{
 		super(props);
-		//console.log(props);
 	}
+
+	handleclick(left)
+	{
+		var index = (left ? 0 : 1);
+		var other = (left ? 1 : 0);
+		this.props.match.scores[index].value = 4;
+		this.props.match.scores[other].value = 0;
+		this.forceUpdate();
+		//ReactDOM.render(<Dropdown match={this.props.match}/>, document.getElementById("dropdown"));
+	}
+
+	handleMouseDown(left, e)
+	{
+		var component = this;
+		var dropdownTimeout = setTimeout(function()
+		{
+			ReactDOM.render(<Dropdown match={component.props.match} parent={component} left={left}/>, document.getElementById("dropdown"));
+		}, 75);
+
+		var cancelDropdown = function()
+		{
+			clearTimeout(dropdownTimeout);
+		}
+		window.onmouseup = cancelDropdown;
+		e.target.onmouseleave = cancelDropdown;
+	}
+
 	render()
 	{
 		var match = this.props.match;
 		var scoreA = match.scores[0].value;
 		var scoreB = match.scores[1].value;
+		var id="match_" + match.id;
+
 		var divStyle = {
 			padding: "2px",
 			display: "block",
 			overflow:"auto",
 		};
+
 		return (
-			<div style={divStyle}>
-				<Team key={match.competitors[0].id} team={match.competitors[0]} score={scoreA} left={true}  winner={scoreA > scoreB}/>
-				<Team key={match.competitors[1].id} team={match.competitors[1]} score={scoreB} left={false} winner={scoreB > scoreA}/>
+			<div style={divStyle} id={id}>
+				<Team 
+					key={match.competitors[0].id} 
+					team={match.competitors[0]} 
+					score={scoreA} 
+					match={match}
+					left={true}  
+					winner={scoreA > scoreB}
+					onClick={() => this.handleclick(true)}
+					onMouseDown={(e) => this.handleMouseDown(true, e)}
+				/>
+				<Team 
+					key={match.competitors[1].id} 
+					team={match.competitors[1]} 
+					score={scoreB}  
+					match={match}
+					left={false} 
+					winner={scoreB > scoreA}
+					onClick={() => this.handleclick(false)}
+					onMouseDown={(e) => this.handleMouseDown(false, e)}
+				/>
 			</div>
 		);
 	}
@@ -124,13 +179,16 @@ class Team extends React.Component
 		var backgroundColor = (this.props.winner ? "#" + team.primaryColor : "#bbbbbb");
 		var textColor = (this.props.winner ? "#" + team.secondaryColor : "#000000");
 		var wrapperStyle = {
-			borderTop: "2px solid #" + team.primaryColor,
-			borderBottom: "2px solid #" + team.primaryColor,
+			border: "2px solid #" + team.primaryColor,
 			borderLeft: (this.props.left ? "2px solid #" + team.primaryColor : ""),
 			borderRight: (this.props.left ? "" : "2px solid #" + team.primaryColor),
 			backgroundColor: backgroundColor,
 			padding: "3px",
 			float: "left",
+			borderTopLeftRadius: (this.props.left ? "3px" : ""),
+			borderBottomLeftRadius: (this.props.left ? "3px" : ""),
+			borderTopRightRadius: (this.props.left ? "" : "3px"),
+			borderBottomRightRadius: (this.props.left ? "" : "3px"),
 		};
 		var divStyle = {
 			backgroundColor: backgroundColor,
@@ -138,9 +196,13 @@ class Team extends React.Component
 		var imgStyle = {
 			backgroundColor: "white",
 			height: "30px",
+			width: "30px",
 			borderRadius: "3px",
 			margin: "auto",
 			verticalAlign: "middle",
+			backgroundImage: "url(" + team.secondaryPhoto + ")",
+			backgroundSize: "100%",
+			display: "inline-block",
 		};
 		var scoreStyle = {
 			color: (areContrasting(backgroundColor, textColor) ? textColor : isBright(backgroundColor) ? "black" : "white"),
@@ -153,20 +215,182 @@ class Team extends React.Component
 			textAlign: "center",
 		};
 
-		var image = <img style={imgStyle} src={team.secondaryPhoto}/>;
+		var innerDiv;
+		var image = <span style={imgStyle}/>;
 		var score = <span style={scoreStyle}>{this.props.score}</span>;
 		if(this.props.left)
 		{
-			return (
-				<div style={wrapperStyle}><div style={divStyle}>{image}{score}</div></div>
-			);
+			innerDiv = <div style={divStyle}>{image}{score}</div>
 		}
 		else
 		{
-			return (
-				<div style={wrapperStyle}><div style={divStyle}>{score}{image}</div></div>
-			);
+			innerDiv = <div style={divStyle}>{score}{image}</div>
 		}
+		return (
+			<div 
+				style={wrapperStyle} 
+				onClick={this.props.onClick} 
+				onMouseDown={this.props.onMouseDown} >{innerDiv}
+			</div>
+		);
+	}
+}
+
+class Dropdown extends React.Component 
+{
+	constructor(props)
+	{
+		super(props);
+		//console.log(props);
+	}
+
+	handleMouseLeave()
+	{
+		document.getElementById("dropdown").style.display = "none";
+	}
+
+	handleMouseUp()
+	{
+		document.getElementById("dropdown").style.display = "none";
+	}
+
+	render()
+	{
+		var matchDiv = document.getElementById("match_" + this.props.match.id);
+		var rect = matchDiv.getBoundingClientRect();
+		var index = this.props.left ? 0 : 1;
+		var team = this.props.parent.props.match.competitors[index];
+
+		document.getElementById("dropdown").style.display = "block";
+
+		var scores = [
+			<DropdownOption 
+				leftScore={(this.props.left ? 4 : 0)} 
+				rightScore={(this.props.left ? 0 : 4)} 
+				parent = {this.props.parent}
+				key={0}
+			/>,
+
+			<DropdownOption 
+				leftScore={(this.props.left ? 3 : 1)} 
+				rightScore={(this.props.left ? 1 : 3)} 
+				parent = {this.props.parent}  
+				key={1}
+			/>,
+
+			<DropdownOption 
+				leftScore={(this.props.left ? 3 : 2)} 
+				rightScore={(this.props.left ? 2 : 3)} 
+				parent = {this.props.parent}
+				key={2}
+			/>,
+
+			<DropdownOption 
+				leftScore={(this.props.left ? 3 : 0)} 
+				rightScore={(this.props.left ? 0 : 3)} 
+				parent = {this.props.parent}
+				key={3}
+			/>,
+
+			<DropdownOption
+				leftScore={(this.props.left ? 2 : 1)} 
+				rightScore={(this.props.left ? 1 : 2)} 
+				parent = {this.props.parent}
+				key={4}
+			/>,
+
+			<DropdownOption 
+				leftScore={(this.props.left ? 2 : 0)} 
+				rightScore={(this.props.left ? 0 : 2)} 
+				parent = {this.props.parent}
+				key={5}
+			/>,
+
+			<DropdownOption 
+				leftScore = {0} 
+				rightScore = {0} 
+				parent = {this.props.parent}
+				key={6}
+			/>,
+		];
+
+		var backgroundColor = team.primaryColor;
+		var textColor = areContrasting(backgroundColor, team.secondaryColor) ? "#" +team.secondaryColor : isBright(backgroundColor) ? "black" : "white";
+
+		var wrapperStyle = {
+			width: "124px",
+			borderRadius: "3px",
+			position: "absolute",
+			left: document.body.scrollLeft + rect.x + 2,
+			top: document.body.scrollTop + rect.y - 2,
+		};
+
+		var topDivStyle = {
+			width: "100%",
+			height: "44px",
+		};
+
+		var bottomDivStyle = {
+			width: "100%",
+			backgroundColor: backgroundColor,
+			borderLeft: "2px solid " + textColor,
+			borderRight: "2px solid " + textColor,
+			borderBottom: "2px solid " + textColor,
+			color: textColor,
+		};
+
+		return (
+			<div style={wrapperStyle} onMouseLeave={() => this.handleMouseLeave()} onMouseUp={() => this.handleMouseUp()}>
+				<div style={topDivStyle} />
+				<div style={bottomDivStyle}>
+					{scores}
+				</div>
+			</div>
+		);
+	}
+
+}
+
+class DropdownOption extends React.Component 
+{
+	constructor(props)
+	{
+		super(props);
+		//console.log(props);
+	}
+
+	handleMouseUp()
+	{
+		this.props.parent.props.match.scores[0].value = this.props.leftScore;
+		this.props.parent.props.match.scores[1].value = this.props.rightScore;
+		this.props.parent.forceUpdate();
+	}
+
+
+	render()
+	{			
+		var divStyle = {
+			fontSize: "20px",
+			fontFamily: "sans-serif",
+			textAlign: "center",
+			width: "100%",
+		};
+
+		var scores = this.props.leftScore + " - " + this.props.rightScore;
+		if(this.props.leftScore === 0 && this.props.rightScore === 0)
+		{
+			scores = "Reset Game";
+		}
+
+		return (
+			<div
+				style={divStyle} 
+				className="dropdownOption" 
+				onMouseUp={() => this.handleMouseUp()} 
+			>
+				{scores}
+			</div>
+		);
 	}
 }
 
