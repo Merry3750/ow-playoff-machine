@@ -270,47 +270,47 @@ class Dropdown extends React.Component
 				parent = {this.props.parent}
 				key={0}
 			/>,
-
 			<DropdownOption 
 				leftScore={(this.props.left ? 3 : 1)} 
 				rightScore={(this.props.left ? 1 : 3)} 
 				parent = {this.props.parent}  
 				key={1}
 			/>,
-
 			<DropdownOption 
 				leftScore={(this.props.left ? 3 : 2)} 
 				rightScore={(this.props.left ? 2 : 3)} 
 				parent = {this.props.parent}
 				key={2}
 			/>,
-
 			<DropdownOption 
 				leftScore={(this.props.left ? 3 : 0)} 
 				rightScore={(this.props.left ? 0 : 3)} 
 				parent = {this.props.parent}
 				key={3}
 			/>,
-
 			<DropdownOption
 				leftScore={(this.props.left ? 2 : 1)} 
 				rightScore={(this.props.left ? 1 : 2)} 
 				parent = {this.props.parent}
 				key={4}
 			/>,
-
 			<DropdownOption 
 				leftScore={(this.props.left ? 2 : 0)} 
 				rightScore={(this.props.left ? 0 : 2)} 
 				parent = {this.props.parent}
 				key={5}
 			/>,
-
+			// <DropdownOption 
+			// 	leftScore={(this.props.left ? 1 : 0)} 
+			// 	rightScore={(this.props.left ? 0 : 1)} 
+			// 	parent = {this.props.parent}
+			//	key={6}
+			// />,
 			<DropdownOption 
 				leftScore = {0} 
 				rightScore = {0} 
 				parent = {this.props.parent}
-				key={6}
+				key={7}
 			/>,
 		];
 
