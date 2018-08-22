@@ -124,7 +124,7 @@ class Match extends React.Component
 		var dropdownTimeout = setTimeout(function()
 		{
 			ReactDOM.render(<Dropdown match={component.props.match} parent={component} left={left}/>, document.getElementById("dropdown"));
-		}, 75);
+		}, 150);
 
 		var cancelDropdown = function()
 		{
