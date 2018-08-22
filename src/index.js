@@ -4,6 +4,8 @@ import './styles/index.css';
 import Dropdown from './dropdown.js';
 import * as utils from "./utils.js";
 
+var g_matchComponents = [];
+var g_standingsComponent;
 
 class Thing extends React.Component 
 {
@@ -25,7 +27,9 @@ class Thing extends React.Component
 		}
 
 		return (
-			<div style={{width: "1000px"}}>{stageList}</div>
+			<div>
+				<div>{stageList}</div>
+			</div>
 		);
 	}
 }
@@ -101,6 +105,7 @@ class Match extends React.Component
 	constructor(props)
 	{
 		super(props);
+		g_matchComponents.push(this);
 	}
 
 	handleclick(left)
@@ -127,6 +132,11 @@ class Match extends React.Component
 		}
 		window.onmouseup = cancelDropdown;
 		e.target.onmouseleave = cancelDropdown;
+	}
+
+	componentDidUpdate()
+	{
+		g_standingsComponent.forceUpdate();
 	}
 
 	render()
@@ -239,6 +249,150 @@ class Team extends React.Component
 	}
 }
 
+class Standings extends React.Component 
+{
+	constructor(props)
+	{
+		super(props);
+		g_standingsComponent = this;
+	}
+
+	render()
+	{
+
+		var teams = this.props.teams.competitors;
+		for(var j = 0; j < teams.length; j++)
+		{
+			teams[j].competitor.wins = 0;
+			teams[j].competitor.losses = 0;
+			teams[j].competitor.matchDiff = 0;
+		}
+
+		for(var i = 0; i < g_matchComponents.length; i++)
+		{
+			var match = g_matchComponents[i].props.match;
+			for (var j = 0; j < teams.length; j++)
+			{
+				if(match.competitors[0].id == teams[j].competitor.id || match.competitors[1].id == teams[j].competitor.id)
+				{
+					var index = (match.competitors[0].id == teams[j].competitor.id ? 0 : 1);
+					var otherIndex = 1 - index;
+					
+					if(match.scores[index].value > match.scores[otherIndex].value)
+					{
+						teams[j].competitor.wins++;
+					}
+					else
+					{
+						teams[j].competitor.losses++;
+					}
+
+					teams[j].competitor.matchDiff += match.scores[index].value - match.scores[otherIndex].value;
+				}
+			}
+		}
+
+		teams.sort(function(a,b)
+		{
+			if(a.competitor.wins != b.competitor.wins)
+			{
+				return b.competitor.wins - a.competitor.wins;
+			}
+			else if(a.competitor.matchDiff != b.competitor.matchDiff)
+			{
+				return b.competitor.matchDiff - a.competitor.matchDiff;
+			}
+			else
+			{
+				//TODO: add tiebreaker here
+				return -1;
+			}
+		});
+
+		var standingPlaces = [];
+		for(var j = 0; j < teams.length; j++)
+		{
+			var isTop = (j == 0);
+			standingPlaces.push(<StandingPlace key={teams[j].competitor.id} team={teams[j]} isTop={isTop} />);
+		}
+
+		var divStyle = {
+			marginTop: "5px",
+			maxWidth: "500px",
+		};
+
+		return (
+			<div style={divStyle}>{standingPlaces}</div>
+		);
+	}
+}
+
+class StandingPlace extends React.Component 
+{
+	constructor(props)
+	{
+		super(props);
+	}
+
+	render()
+	{
+		var team = this.props.team.competitor;	
+		team.matchDiff = (team.matchDiff > 0 ? "+" + team.matchDiff : team.matchDiff);
+
+		var wrapperStyle = {
+			backgroundColor: "#bbbbbb",
+			padding: "3px",
+			border: "2px solid black",
+			borderTop: (this.props.isTop ? "2px solid black" : ""),
+		};
+		var imgStyle = {
+			backgroundColor: "white",
+			height: "30px",
+			width: "30px",
+			borderRadius: "3px",
+			margin: "auto",
+			verticalAlign: "middle",
+			backgroundImage: "url(" + team.secondaryPhoto + ")",
+			backgroundSize: "100%",
+			display: "inline-block",
+		};
+		var textStyle = {
+			color: "black",
+			fontSize: "20px",
+			fontFamily: "sans-serif",
+			verticalAlign: "middle",
+			margin: "3px",
+			display:"inline-block",
+			textAlign: "center",
+		};
+		var scoreWrapperStyle = {
+			color: "black",
+			fontSize: "20px",
+			fontFamily: "sans-serif",
+			verticalAlign: "middle",
+			margin: "3px",
+			display:"inline-block",
+			textAlign: "center",
+			float: "right",
+		};
+		var scoreStyle = {
+			display:"inline-block",
+			width: "50px",
+		};
+		return (
+			<div style={wrapperStyle}>
+				<div style={imgStyle} />
+				<div style={textStyle}>{team.name}</div>
+				<div style={scoreWrapperStyle}>
+					<div style={scoreStyle}>{team.wins}</div>
+					<div style={scoreStyle}>{team.losses}</div>
+					<div style={scoreStyle}>{team.matchDiff}</div>
+				</div>
+			</div>
+		);
+	}
+}
+
 fetch("https://api.overwatchleague.com/teams").then(response => response.json()).then(
 	(resultTeams) => 
 	{
@@ -246,6 +400,7 @@ fetch("https://api.overwatchleague.com/teams").then(response => response.json())
 			(resultSchedule) => 
 			{
 				ReactDOM.render(<Thing schedule={resultSchedule} teams={resultTeams} />, document.getElementById("react"));
+				ReactDOM.render(<Standings teams={resultTeams}/>, document.getElementById("standings"));
 			},
 			(error) => {
 				console.log(error);

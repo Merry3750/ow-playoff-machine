@@ -2,6 +2,8 @@ import React from 'react';
 import './styles/dropdown.css';
 import * as utils from "./utils.js";
 
+var standingsComponent;
+
 class Dropdown extends React.Component 
 {
 	constructor(props)
