@@ -310,10 +310,24 @@ class Standings extends React.Component
 		});
 
 		var standingPlaces = [];
+		var divisions = [];
+		var lastDivisionLeadSeed = 0;
+		var lastWildCardSeed = this.props.teams.owl_divisions.length;
 		for(var j = 0; j < teams.length; j++)
 		{
+			var seed = 0;
+			console.log(teams[j]);
+			if (!divisions.includes(teams[j].competitor.owl_division))
+			{
+				divisions.push(teams[j].competitor.owl_division);
+				seed = ++lastDivisionLeadSeed;
+			}
+			else
+			{
+				seed = ++lastWildCardSeed;
+			}
 			var isTop = (j == 0);
-			standingPlaces.push(<StandingPlace key={teams[j].competitor.id} team={teams[j]} isTop={isTop} />);
+			standingPlaces.push(<StandingPlace key={teams[j].competitor.id} team={teams[j]} isTop={isTop} seed={seed}/>);
 		}
 
 		var divStyle = {
@@ -365,6 +379,15 @@ class StandingPlace extends React.Component
 			display:"inline-block",
 			textAlign: "center",
 		};
+		var textStyle2 = {
+			color: "black",
+			fontSize: "12px",
+			fontFamily: "sans-serif",
+			verticalAlign: "middle",
+			margin: "3px",
+			display:"inline-block",
+			textAlign: "center",
+		};
 		var scoreWrapperStyle = {
 			color: "black",
 			fontSize: "20px",
@@ -383,6 +406,7 @@ class StandingPlace extends React.Component
 			<div style={wrapperStyle}>
 				<div style={imgStyle} />
 				<div style={textStyle}>{team.name}</div>
+				<div style={textStyle2}>{this.props.seed <= 6 ? this.props.seed : ""}</div>
 				<div style={scoreWrapperStyle}>
 					<div style={scoreStyle}>{team.wins}</div>
 					<div style={scoreStyle}>{team.losses}</div>
