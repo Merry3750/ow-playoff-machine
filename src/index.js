@@ -2,18 +2,20 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './styles/index.css';
 import Dropdown from './dropdown.js';
+import Standings from './standings.js';
 import * as utils from "./utils.js";
 
 var g_matchComponents = [];
 var g_standingsComponent;
 
-class Thing extends React.Component 
+class Schedule extends React.Component 
 {
 	constructor(props)
 	{
 		super(props);
 		console.log(props);
 	}
+
 	render()
 	{
 		var stageList = [];
@@ -22,7 +24,7 @@ class Thing extends React.Component
 			var stage = this.props.schedule.data.stages[i];
 			if(stage.slug.startsWith("stage"))
 			{
-				stageList.push(<Stage key={stage.id} stage={stage} />);
+				stageList.push(<Stage key={stage.id} stage={stage} teams={this.props.teams}/>);
 			}
 		}
 
@@ -36,16 +38,29 @@ class Thing extends React.Component
 
 class Stage extends React.Component 
 {
+
 	constructor(props)
 	{
 		super(props);
+		this.matchComponents = [];
+		this.standings;
 		//console.log(props);
 	}
+
+	addMatchComponent(component)
+	{
+		this.matchComponents.push(component);
+	}
+
+	updateStandings()
+	{
+		this.standings.forceUpdate();
+	}
+
 	render()
 	{
 		var divStyle = {
 			border: "1px solid black",
-			//height:"542px"
 			overflow:"auto",
 
 			// -webkit-touch-callout: none; /* iOS Safari */
@@ -56,15 +71,24 @@ class Stage extends React.Component
 			userSelect: "none", /* Non-prefixed version, currently supported by Chrome and Opera */
 
 		}
+
 		var weekList = [];
 		for(var i = 0; i < this.props.stage.weeks.length; i++)
 		{
 			var week = this.props.stage.weeks[i];
-			weekList.push(<Week key={week.id} week={week} />);
+			weekList.push(<Week key={week.id} week={week} addMatchComponent={(c) => this.addMatchComponent(c)} updateStandings={() => this.updateStandings()} />);
 		}
 
+		var stageType = this.props.stage.id <= 2 ? "OWL_StageA" : "OWL_StageB";
+
+		var stageList = <Standings matchComponents={this.matchComponents} teams={this.props.teams} ref={(s) => this.standings = s} type={stageType} global={false} />
+
 		return (
-			<div style={divStyle}>{weekList}</div>
+			<div style={divStyle}>
+				{weekList}
+				{stageList}
+			</div>
+
 		);
 	}
 }
@@ -91,7 +115,9 @@ class Week extends React.Component
 			var match = this.props.week.matches[i];
 			if(match.conclusionStrategy === "MINIMUM")
 			{
-				matchList.push(<Match key={match.id} match={match} />)
+				var matchComponent = <Match key={match.id} match={match} updateStandings={() => this.props.updateStandings()}/>;
+				this.props.addMatchComponent(matchComponent);
+				matchList.push(matchComponent);
 			}
 		}
 		return (
@@ -137,6 +163,7 @@ class Match extends React.Component
 	componentDidUpdate()
 	{
 		g_standingsComponent.forceUpdate();
+		this.props.updateStandings();
 	}
 
 	render()
@@ -197,7 +224,7 @@ class Team extends React.Component
 			borderRight: (this.props.left ? "" : "2px solid #" + team.primaryColor),
 			backgroundColor: backgroundColor,
 			padding: "3px",
-			float: "left",
+			display: "inline-block",
 			borderTopLeftRadius: (this.props.left ? "3px" : ""),
 			borderBottomLeftRadius: (this.props.left ? "3px" : ""),
 			borderTopRightRadius: (this.props.left ? "" : "3px"),
@@ -249,182 +276,14 @@ class Team extends React.Component
 	}
 }
 
-class Standings extends React.Component 
-{
-	constructor(props)
-	{
-		super(props);
-		g_standingsComponent = this;
-	}
-
-	render()
-	{
-
-		var teams = this.props.teams.competitors;
-		for(var j = 0; j < teams.length; j++)
-		{
-			teams[j].competitor.wins = 0;
-			teams[j].competitor.losses = 0;
-			teams[j].competitor.matchDiff = 0;
-		}
-
-		for(var i = 0; i < g_matchComponents.length; i++)
-		{
-			var match = g_matchComponents[i].props.match;
-			for (var j = 0; j < teams.length; j++)
-			{
-				if(match.competitors[0].id == teams[j].competitor.id || match.competitors[1].id == teams[j].competitor.id)
-				{
-					var index = (match.competitors[0].id == teams[j].competitor.id ? 0 : 1);
-					var otherIndex = 1 - index;
-					
-					if(match.scores[index].value > match.scores[otherIndex].value)
-					{
-						teams[j].competitor.wins++;
-					}
-					else
-					{
-						teams[j].competitor.losses++;
-					}
-
-					teams[j].competitor.matchDiff += match.scores[index].value - match.scores[otherIndex].value;
-				}
-			}
-		}
-
-		teams.sort(function(a,b)
-		{
-			if(a.competitor.wins != b.competitor.wins)
-			{
-				return b.competitor.wins - a.competitor.wins;
-			}
-			else if(a.competitor.matchDiff != b.competitor.matchDiff)
-			{
-				return b.competitor.matchDiff - a.competitor.matchDiff;
-			}
-			else
-			{
-				//TODO: add tiebreaker here
-				return -1;
-			}
-		});
-
-		var standingPlaces = [];
-		var divisions = [];
-		var lastDivisionLeadSeed = 0;
-		var lastWildCardSeed = this.props.teams.owl_divisions.length;
-		for(var j = 0; j < teams.length; j++)
-		{
-			var seed = 0;
-			console.log(teams[j]);
-			if (!divisions.includes(teams[j].competitor.owl_division))
-			{
-				divisions.push(teams[j].competitor.owl_division);
-				seed = ++lastDivisionLeadSeed;
-			}
-			else
-			{
-				seed = ++lastWildCardSeed;
-			}
-			var isTop = (j == 0);
-			standingPlaces.push(<StandingPlace key={teams[j].competitor.id} team={teams[j]} isTop={isTop} seed={seed}/>);
-		}
-
-		var divStyle = {
-			marginTop: "5px",
-			maxWidth: "500px",
-		};
-
-		return (
-			<div style={divStyle}>{standingPlaces}</div>
-		);
-	}
-}
-
-class StandingPlace extends React.Component 
-{
-	constructor(props)
-	{
-		super(props);
-	}
-
-	render()
-	{
-		var team = this.props.team.competitor;	
-		team.matchDiff = (team.matchDiff > 0 ? "+" + team.matchDiff : team.matchDiff);
-
-		var wrapperStyle = {
-			backgroundColor: "#bbbbbb",
-			padding: "3px",
-			border: "2px solid black",
-			borderTop: (this.props.isTop ? "2px solid black" : ""),
-		};
-		var imgStyle = {
-			backgroundColor: "white",
-			height: "30px",
-			width: "30px",
-			borderRadius: "3px",
-			margin: "auto",
-			verticalAlign: "middle",
-			backgroundImage: "url(" + team.secondaryPhoto + ")",
-			backgroundSize: "100%",
-			display: "inline-block",
-		};
-		var textStyle = {
-			color: "black",
-			fontSize: "20px",
-			fontFamily: "sans-serif",
-			verticalAlign: "middle",
-			margin: "3px",
-			display:"inline-block",
-			textAlign: "center",
-		};
-		var textStyle2 = {
-			color: "black",
-			fontSize: "12px",
-			fontFamily: "sans-serif",
-			verticalAlign: "middle",
-			margin: "3px",
-			display:"inline-block",
-			textAlign: "center",
-		};
-		var scoreWrapperStyle = {
-			color: "black",
-			fontSize: "20px",
-			fontFamily: "sans-serif",
-			verticalAlign: "middle",
-			margin: "3px",
-			display:"inline-block",
-			textAlign: "center",
-			float: "right",
-		};
-		var scoreStyle = {
-			display:"inline-block",
-			width: "50px",
-		};
-		return (
-			<div style={wrapperStyle}>
-				<div style={imgStyle} />
-				<div style={textStyle}>{team.name}</div>
-				<div style={textStyle2}>{this.props.seed <= 6 ? this.props.seed : ""}</div>
-				<div style={scoreWrapperStyle}>
-					<div style={scoreStyle}>{team.wins}</div>
-					<div style={scoreStyle}>{team.losses}</div>
-					<div style={scoreStyle}>{team.matchDiff}</div>
-				</div>
-			</div>
-		);
-	}
-}
-
 fetch("https://api.overwatchleague.com/teams").then(response => response.json()).then(
 	(resultTeams) => 
 	{
 		fetch("https://api.overwatchleague.com/schedule").then(response => response.json()).then(
 			(resultSchedule) => 
 			{
-				ReactDOM.render(<Thing schedule={resultSchedule} teams={resultTeams} />, document.getElementById("react"));
-				ReactDOM.render(<Standings teams={resultTeams}/>, document.getElementById("standings"));
+				ReactDOM.render(<Schedule schedule={resultSchedule} teams={resultTeams} />, document.getElementById("react"));
+				ReactDOM.render(<Standings matchComponents={g_matchComponents} teams={resultTeams} global={true} type={"OWL_Overall"} ref={(s) => {g_standingsComponent = s}}/>, document.getElementById("standings"));
 			},
 			(error) => {
 				console.log(error);
