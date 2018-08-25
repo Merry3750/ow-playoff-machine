@@ -1,3 +1,27 @@
-.dropdownOption:hover{
+.dropdownSpacer {
+	width: 100%;
+	height: 44px;
+}
+
+.dropdownWrapper {
+	width: 128px;
+	border-radius: 3px;
+	position: absolute;
+}
+
+.dropdownOptionContainer {
+	width: 100%;
+	border-top: none !important; 
+	border-bottom-left-radius: 3px;
+	border-bottom-right-radius: 3px;
+}
+
+.dropdownOption {
+	font-size: 20px;
+	text-align: center;
+	width: 100%;
+}
+
+.dropdownOption:hover {
 	background-color: rgba(128, 128, 128, 0.5); 
 }

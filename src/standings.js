@@ -1,10 +1,17 @@
 import React from 'react';
+import './styles/standings.css';
 
 class Standings extends React.Component 
 {
 	constructor(props)
 	{
 		super(props);
+		this.state={mounted: false};
+	}
+
+	componentDidMount()
+	{
+		this.state.mounted = true;
 	}
 
 	render()
@@ -96,19 +103,21 @@ class Standings extends React.Component
 			{
 				seed = ++lastWildCardSeed;
 			}
-			var isTop = (j === 0);
-			standingPlaces.push(<StandingPlace key={teams[j].competitor.id} team={teams[j]} isTop={isTop} seed={seed} type={this.props.type}/>);
+			standingPlaces.push(<StandingPlace key={teams[j].competitor.id} team={teams[j]} seed={seed} type={this.props.type}/>);
 		}
 
-		var divStyle = {
-			marginTop: "5px",
-			maxWidth: "500px",
-			//verticalAlign: "middle",
-			display: "inline-block",
-		};
-
 		return (
-			<div style={divStyle}>{standingPlaces}</div>
+			<table className="standingsTable">
+				<tbody>
+					<tr>
+						<th>Team</th>
+						<th className="standingsColumnData">W</th>
+						<th className="standingsColumnData">L</th>
+						<th className="standingsColumnData">+/-</th>
+					</tr>
+					{standingPlaces}
+				</tbody>
+			</table>
 		);
 	}
 }
@@ -125,54 +134,8 @@ class StandingPlace extends React.Component
 		var team = this.props.team.competitor;	
 		team.mapDiff = (team.mapDiff > 0 ? "+" + team.mapDiff : team.mapDiff);
 
-		var wrapperStyle = {
-			backgroundColor: "#bbbbbb",
-			padding: "3px",
-			border: "2px solid black",
-			borderTop: (this.props.isTop ? "2px solid black" : ""),
-		};
 		var imgStyle = {
-			backgroundColor: "white",
-			height: "30px",
-			width: "30px",
-			borderRadius: "3px",
-			margin: "auto",
-			verticalAlign: "middle",
 			backgroundImage: "url(" + team.secondaryPhoto + ")",
-			backgroundSize: "100%",
-			display: "inline-block",
-		};
-		var textStyle = {
-			color: "black",
-			fontSize: "20px",
-			fontFamily: "sans-serif",
-			verticalAlign: "middle",
-			margin: "3px",
-			display:"inline-block",
-			textAlign: "center",
-		};
-		var textStyle2 = {
-			color: "black",
-			fontSize: "12px",
-			fontFamily: "sans-serif",
-			verticalAlign: "middle",
-			margin: "3px",
-			display:"inline-block",
-			textAlign: "center",
-		};
-		var scoreWrapperStyle = {
-			color: "black",
-			fontSize: "20px",
-			fontFamily: "sans-serif",
-			verticalAlign: "middle",
-			margin: "3px",
-			display:"inline-block",
-			textAlign: "center",
-			float: "right",
-		};
-		var scoreStyle = {
-			display:"inline-block",
-			width: "50px",
 		};
 
 		var maxSeed;
@@ -190,17 +153,28 @@ class StandingPlace extends React.Component
 				break;
 		}
 
+		var inPlayoffs = this.props.seed <= maxSeed
+		var seed = inPlayoffs ? this.props.seed : "";
+
 		return (
-			<div style={wrapperStyle}>
-				<div style={imgStyle} />
-				<div style={textStyle}>{team.name}</div>
-				<div style={textStyle2}>{this.props.seed <= maxSeed ? this.props.seed : ""}</div>
-				<div style={scoreWrapperStyle}>
-					<div style={scoreStyle}>{team.wins}</div>
-					<div style={scoreStyle}>{team.losses}</div>
-					<div style={scoreStyle}>{team.mapDiff}</div>
-				</div>
-			</div>
+			<tr className="standingsRow">
+				<td className="standingsColumnName">
+					<div>	
+						<div className="image" style={imgStyle} />
+						<div className="standingsColumnNameName" >{team.name}</div>
+						<div className="standingsColumnNameSeed">{seed}</div>
+					</div>
+				</td>
+				<td className="standingsColumnData">
+					<div>{team.wins}</div>
+				</td>
+				<td className="standingsColumnData">
+					<div>{team.losses}</div>
+				</td>
+				<td className="standingsColumnData">
+					<div>{team.mapDiff}</div>
+				</td>
+			</tr>
 		);
 	}
 }

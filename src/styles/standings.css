@@ -1,0 +1,47 @@
+table.standingsTable {
+	margin-top: 5px;
+	max-width: 500px;
+	display: inline-block;
+	border-collapse: collapse;
+	border: 2px solid black;
+	background-color: #bbbbbb;
+	font-size: 20px;
+	text-align: center;
+}
+
+table.standingsTable div {
+	vertical-align: middle;
+}
+
+tr.standingsRow {
+	border-top: 2px solid black;
+}
+
+td.standingsColumnName {
+	text-align: left;
+	min-width: 300px;
+}
+
+td.standingsColumnName>div {
+	padding: 3px 10px 3px 3px;
+}
+
+td.standingsColumnName>div>div {
+	display: inline-block;
+}
+
+.standingsColumnNameName {
+	margin-left: 3px;
+}
+
+.standingsColumnNameSeed {
+	font-size: 12px;
+	vertical-align: middle;
+	margin: 5px;
+}
+
+.standingsColumnData {
+	border-left: 1px solid #888888;
+	min-width: 45px;
+}
+

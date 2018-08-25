@@ -1,0 +1,136 @@
+body {
+	font-family: sans-serif;
+	color: black;
+
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none; /* Safari */
+	-khtml-user-select: none; /* Konqueror HTML */
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* Internet Explorer/Edge */
+	user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
+}
+
+.stage {
+	border: 1px solid black;
+	border-top: none;
+	overflow: auto;
+}
+
+.week {
+	float: left;
+	padding: 5px;
+	margin: 5px;
+	overflow: auto;
+}
+
+.match{
+	padding: 2px;
+	display: block;
+	overflow: auto;
+}
+
+.team { 
+	padding: 3px;
+	display: inline-block;
+}
+
+.team.left {
+	border-right: none !important;
+	border-top-left-radius: 3px;
+	border-bottom-left-radius: 3px;
+}
+
+.team.right {
+	border-left: none !important;	
+	border-top-right-radius: 3px;
+	border-bottom-right-radius: 3px;
+}
+
+.team div {
+	display: inline-block;
+}
+
+.teamScore { 
+	font-size: 20px;
+	width: 20px;
+	vertical-align: middle;
+	margin: 3px;
+	text-align: center;
+}
+
+.image {
+	background-color: white;
+	height: 30px;
+	width: 30px;
+	border-radius: 3px;
+	margin: auto;
+	vertical-align: middle;
+	background-size: 100%;
+}
+
+.stageTabFillerRight {
+	overflow: hidden;
+	border-bottom: 1px solid black;
+	vertical-align: bottom;
+	height: 29px;
+}
+
+.stageTabFillerLeft {
+	display: inline-block;
+	float: left;
+	width: 50px;
+	border-bottom: 1px solid black;
+	height: 29px;
+}
+
+.stageTabContainer {
+	overflow: hidden; /* clear the float */
+	height: 30px;
+}
+
+.stageTabWrapper {
+	float: left;
+}
+
+.stageTabSpacerLeft, .stageTabSpacerRight {
+	display: inline-block;
+	width: 5px;
+	border-bottom: 1px solid black;
+	height: 29px;
+	float: left;
+}
+
+.stageTabSpacerLeft {
+	border-right: 1px solid black;
+}
+
+.stageTabSpacerRight {
+	border-left: 1px solid black;
+}
+
+.stageTab {
+	display: inline-block;
+	padding: 0 5px;
+	border-top: 1px solid black;
+	border-bottom: 1px solid black;
+	line-height: 28px;
+	height: 28px;
+	float: left;
+}
+
+.stageTabFormatter {
+	display: inline-block;
+	height: 30px;
+}
+
+.stageTabFormatter.active>.stageTab {
+	border-bottom: none;
+}
+
+.stageTabFormatter.active>.stageTabSpacerLeft {
+	border-bottom-right-radius: 5px;
+}
+
+.stageTabFormatter.active>.stageTabSpacerRight {
+	border-bottom-left-radius: 5px;
+}

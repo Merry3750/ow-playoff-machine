@@ -14,22 +14,57 @@ class Schedule extends React.Component
 	{
 		super(props);
 		console.log(props);
+		this.stageTabComponents = [];
+		this.stageComponents = [];
+	}
+
+	componentDidMount()
+	{
+		this.stageTabComponents[0].setState({active: true});
+		this.stageComponents[0].setState({active: true});
+	}
+
+	handleTabClick(component)
+	{
+		for(var i = 0; i < this.stageTabComponents.length; i++)
+		{
+			if(this.stageTabComponents[i] === component)
+			{
+				this.stageTabComponents[i].setState({active: true});
+				this.stageComponents[i].setState({active: true});
+			}
+			else
+			{
+				this.stageTabComponents[i].setState({active: false});
+				this.stageComponents[i].setState({active: false});
+			}
+		}
 	}
 
 	render()
 	{
 		var stageList = [];
+		var stageTabList = [];
 		for(var i = 0; i < this.props.schedule.data.stages.length; i++)
 		{
 			var stage = this.props.schedule.data.stages[i];
 			if(stage.slug.startsWith("stage"))
 			{
-				stageList.push(<Stage key={stage.id} stage={stage} teams={this.props.teams}/>);
+				stageTabList.push(<StageTab key={stage.id} stage={stage} ref={(s) => {this.stageTabComponents.push(s)}} onClick={(c) => this.handleTabClick(c) }/>);
+				stageList.push(<Stage key={stage.id} stage={stage} teams={this.props.teams} ref={(s) => {this.stageComponents.push(s)}} />);
 			}
 		}
 
+
 		return (
 			<div>
+				<div className="stageTabContainer">
+					<div className="stageTabFillerleft"/> 
+					<div className="stageTabWrapper">
+						{stageTabList}
+					</div>
+					<div className="stageTabFillerRight"/>
+				</div>
 				<div>{stageList}</div>
 			</div>
 		);
@@ -44,6 +79,7 @@ class Stage extends React.Component
 		super(props);
 		this.matchComponents = [];
 		this.standings;
+		this.state = {active: false};
 		//console.log(props);
 	}
 
@@ -54,22 +90,21 @@ class Stage extends React.Component
 
 	updateStandings()
 	{
-		this.standings.forceUpdate();
+		if(this.standings && this.standings.state.mounted)
+		{
+			this.standings.forceUpdate();
+		}
+		if(g_standingsComponent && g_standingsComponent.state.mounted)
+		{
+			g_standingsComponent.forceUpdate();
+		}
 	}
 
 	render()
 	{
+		this.matchComponents = [];
 		var divStyle = {
-			border: "1px solid black",
-			overflow:"auto",
-
-			// -webkit-touch-callout: none; /* iOS Safari */
-			// -webkit-user-select: none; /* Safari */
-			// -khtml-user-select: none; /* Konqueror HTML */
-			// -moz-user-select: none; /* Firefox */
-			// -ms-user-select: none; /* Internet Explorer/Edge */
-			userSelect: "none", /* Non-prefixed version, currently supported by Chrome and Opera */
-
+			display: (this.state.active ? "block" : "none"),
 		}
 
 		var weekList = [];
@@ -84,7 +119,7 @@ class Stage extends React.Component
 		var stageList = <Standings matchComponents={this.matchComponents} teams={this.props.teams} ref={(s) => this.standings = s} type={stageType} global={false} />
 
 		return (
-			<div style={divStyle}>
+			<div className="stage" style={divStyle}>
 				{weekList}
 				{stageList}
 			</div>
@@ -102,13 +137,6 @@ class Week extends React.Component
 	}
 	render()
 	{
-		var divStyle = {
-			border: "1px dashed black",
-			float: "left",
-			padding: "5px",
-			margin: "5px",
-			overflow:"auto",
-		}
 		var matchList = [];
 		for(var i = 0; i < this.props.week.matches.length; i++)
 		{
@@ -121,7 +149,7 @@ class Week extends React.Component
 			}
 		}
 		return (
-			<div style={divStyle}>{matchList}</div>
+			<div className="week">{matchList}</div>
 		);
 	}
 }
@@ -132,6 +160,7 @@ class Match extends React.Component
 	{
 		super(props);
 		g_matchComponents.push(this);
+		this.children = [];
 	}
 
 	handleclick(left)
@@ -141,28 +170,32 @@ class Match extends React.Component
 		this.props.match.scores[index].value = 4;
 		this.props.match.scores[other].value = 0;
 		this.forceUpdate();
+		this.updateStandings();
 		//ReactDOM.render(<Dropdown match={this.props.match}/>, document.getElementById("dropdown"));
 	}
 
-	handleMouseDown(left, e)
+	handleMouseDown(left, id, e)
 	{
 		var component = this;
 		var dropdownTimeout = setTimeout(function()
 		{
-			ReactDOM.render(<Dropdown match={component.props.match} parent={component} left={left}/>, document.getElementById("dropdown"));
+			ReactDOM.render(<Dropdown match={component.props.match} parent={component} left={left} updateStandings={() => component.updateStandings()}/>, document.getElementById("dropdown"));
+			component.children[0].setState({clickTarget: id});
+			component.children[1].setState({clickTarget: id});
 		}, 150);
 
 		var cancelDropdown = function()
 		{
 			clearTimeout(dropdownTimeout);
-		}
+		};
 		window.onmouseup = cancelDropdown;
 		e.target.onmouseleave = cancelDropdown;
 	}
 
-	componentDidUpdate()
+	updateStandings()
 	{
-		g_standingsComponent.forceUpdate();
+		this.children[0].setState({clickTarget: false});
+		this.children[1].setState({clickTarget: false});
 		this.props.updateStandings();
 	}
 
@@ -173,14 +206,8 @@ class Match extends React.Component
 		var scoreB = match.scores[1].value;
 		var id="match_" + match.id;
 
-		var divStyle = {
-			padding: "2px",
-			display: "block",
-			overflow:"auto",
-		};
-
 		return (
-			<div style={divStyle} id={id}>
+			<div className="match" id={id}>
 				<Team 
 					key={match.competitors[0].id} 
 					team={match.competitors[0]} 
@@ -189,7 +216,8 @@ class Match extends React.Component
 					left={true}  
 					winner={scoreA > scoreB}
 					onClick={() => this.handleclick(true)}
-					onMouseDown={(e) => this.handleMouseDown(true, e)}
+					onMouseDown={(e) => this.handleMouseDown(true, match.competitors[0].id, e)}
+					ref={(t) => {this.children.push(t)}}
 				/>
 				<Team 
 					key={match.competitors[1].id} 
@@ -199,7 +227,8 @@ class Match extends React.Component
 					left={false} 
 					winner={scoreB > scoreA}
 					onClick={() => this.handleclick(false)}
-					onMouseDown={(e) => this.handleMouseDown(false, e)}
+					onMouseDown={(e) => this.handleMouseDown(false, match.competitors[1].id, e)}
+					ref={(t) => {this.children.push(t)}}
 				/>
 			</div>
 		);
@@ -212,65 +241,85 @@ class Team extends React.Component
 	{
 		super(props);
 		//console.log(props);
+		this.state = {clickTarget: false};
 	}
 	render()
 	{
 		var team = this.props.team;
-		var backgroundColor = (this.props.winner ? "#" + team.primaryColor : "#bbbbbb");
-		var textColor = (this.props.winner ? "#" + team.secondaryColor : "#000000");
+		var getsColor = (this.state.clickTarget && this.state.clickTarget == team.id) ||  
+						(!this.state.clickTarget && this.props.winner);
+		var backgroundColor = (getsColor ? "#" + team.primaryColor : "#bbbbbb");
+		var textColor = (getsColor ? "#" + team.secondaryColor : "#000000");
+		var side = this.props.left ? " left" : " right";
+
 		var wrapperStyle = {
 			border: "2px solid #" + team.primaryColor,
-			borderLeft: (this.props.left ? "2px solid #" + team.primaryColor : ""),
-			borderRight: (this.props.left ? "" : "2px solid #" + team.primaryColor),
-			backgroundColor: backgroundColor,
-			padding: "3px",
-			display: "inline-block",
-			borderTopLeftRadius: (this.props.left ? "3px" : ""),
-			borderBottomLeftRadius: (this.props.left ? "3px" : ""),
-			borderTopRightRadius: (this.props.left ? "" : "3px"),
-			borderBottomRightRadius: (this.props.left ? "" : "3px"),
-		};
-		var divStyle = {
 			backgroundColor: backgroundColor,
 		};
 		var imgStyle = {
-			backgroundColor: "white",
-			height: "30px",
-			width: "30px",
-			borderRadius: "3px",
-			margin: "auto",
-			verticalAlign: "middle",
 			backgroundImage: "url(" + team.secondaryPhoto + ")",
-			backgroundSize: "100%",
-			display: "inline-block",
 		};
 		var scoreStyle = {
 			color: (utils.areContrasting(backgroundColor, textColor) ? textColor : utils.isBright(backgroundColor) ? "black" : "white"),
-			fontSize: "20px",
-			fontFamily: "sans-serif",
-			width: "20px",
-			verticalAlign: "middle",
-			margin: "3px",
-			display:"inline-block",
-			textAlign: "center",
 		};
 
 		var innerDiv;
-		var image = <span style={imgStyle}/>;
-		var score = <span style={scoreStyle}>{this.props.score}</span>;
+		var image = <div className="image" style={imgStyle} />;
+		var score = <div className="teamScore" style={scoreStyle}>{this.props.score}</div>;
 		if(this.props.left)
 		{
-			innerDiv = <div style={divStyle}>{image}{score}</div>
+			innerDiv = <div>{image}{score}</div>
 		}
 		else
 		{
-			innerDiv = <div style={divStyle}>{score}{image}</div>
+			innerDiv = <div>{score}{image}</div>
 		}
 		return (
 			<div 
+				className={"team" + side}
 				style={wrapperStyle} 
 				onClick={this.props.onClick} 
 				onMouseDown={this.props.onMouseDown} >{innerDiv}
+			</div>
+		);
+	}
+}
+
+class StageTab extends React.Component 
+{
+	constructor(props)
+	{
+		super(props);
+		this.state = {active: false};
+	}
+
+	render()
+	{
+		var activeClass = (this.state.active ? " active" : "")
+
+		return (
+			<div className={"stageTabFormatter" + activeClass}>
+				<div className="stageTabSpacerLeft"></div>
+				<div className="stageTab" onClick={() => this.props.onClick(this)} >{this.props.stage.name}</div>
+				<div className="stageTabSpacerRight"></div>
+			</div>
+		);
+	}
+}
+
+class ContentWrapper extends React.Component 
+{
+	constructor(props)
+	{
+		super(props);
+	}
+
+	render()
+	{
+		return (
+			<div>
+				<Schedule schedule={this.props.schedule} teams={this.props.teams} />
+				<Standings matchComponents={g_matchComponents} teams={this.props.teams} global={true} type={"OWL_Overall"} ref={(s) => {g_standingsComponent = s}}/>
 			</div>
 		);
 	}
@@ -282,8 +331,7 @@ fetch("https://api.overwatchleague.com/teams").then(response => response.json())
 		fetch("https://api.overwatchleague.com/schedule").then(response => response.json()).then(
 			(resultSchedule) => 
 			{
-				ReactDOM.render(<Schedule schedule={resultSchedule} teams={resultTeams} />, document.getElementById("react"));
-				ReactDOM.render(<Standings matchComponents={g_matchComponents} teams={resultTeams} global={true} type={"OWL_Overall"} ref={(s) => {g_standingsComponent = s}}/>, document.getElementById("standings"));
+				ReactDOM.render(<ContentWrapper schedule={resultSchedule} teams={resultTeams} />, document.getElementById("wrapper"));
 			},
 			(error) => {
 				console.log(error);
