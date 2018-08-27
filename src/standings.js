@@ -155,13 +155,17 @@ class StandingPlace extends React.Component
 
 		var inPlayoffs = this.props.seed <= maxSeed
 		var seed = inPlayoffs ? this.props.seed : "";
+		
+		var nameStyle = {
+			fontWeight: inPlayoffs ? "bold" : "normal",	
+		};
 
 		return (
 			<tr className="standingsRow">
 				<td className="standingsColumnName">
 					<div>	
 						<div className="image" style={imgStyle} />
-						<div className="standingsColumnNameName" >{team.name}</div>
+						<div className="standingsColumnNameName" style={nameStyle} >{team.name}</div>
 						<div className="standingsColumnNameSeed">{seed}</div>
 					</div>
 				</td>
