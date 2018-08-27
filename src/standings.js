@@ -157,7 +157,7 @@ class StandingPlace extends React.Component
 		var seed = inPlayoffs ? this.props.seed : "";
 		
 		var nameStyle = {
-			fontWeight: "bold",	
+			fontWeight: inPlayoffs ? "bold" : "normal",	
 		};
 
 		return (
