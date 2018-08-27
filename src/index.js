@@ -114,6 +114,7 @@ class Stage extends React.Component
 			weekList.push(<Week key={week.id} week={week} addMatchComponent={(c) => this.addMatchComponent(c)} updateStandings={() => this.updateStandings()} />);
 		}
 
+		//WARNING: HARDCODED THING
 		var stageType = this.props.stage.id <= 2 ? "OWL_StageA" : "OWL_StageB";
 
 		var stageList = <Standings matchComponents={this.matchComponents} teams={this.props.teams} ref={(s) => this.standings = s} type={stageType} global={false} />
@@ -246,7 +247,7 @@ class Team extends React.Component
 	render()
 	{
 		var team = this.props.team;
-		var getsColor = (this.state.clickTarget && this.state.clickTarget == team.id) ||  
+		var getsColor = (this.state.clickTarget && this.state.clickTarget === team.id) ||  
 						(!this.state.clickTarget && this.props.winner);
 		var backgroundColor = (getsColor ? "#" + team.primaryColor : "#bbbbbb");
 		var textColor = (getsColor ? "#" + team.secondaryColor : "#000000");
@@ -279,7 +280,9 @@ class Team extends React.Component
 				className={"team" + side}
 				style={wrapperStyle} 
 				onClick={this.props.onClick} 
-				onMouseDown={this.props.onMouseDown} >{innerDiv}
+				onMouseDown={this.props.onMouseDown} 
+			>	
+				{innerDiv}
 			</div>
 		);
 	}

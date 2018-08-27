@@ -11,7 +11,7 @@ class Standings extends React.Component
 
 	componentDidMount()
 	{
-		this.state.mounted = true;
+		this.setState({mounted: true});
 	}
 
 	render()
