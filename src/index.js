@@ -39,6 +39,7 @@ class Schedule extends React.Component
 				this.stageComponents[i].setState({active: false});
 			}
 		}
+		console.log(utils.generateURL(g_matchComponents));
 	}
 
 	render()
@@ -334,7 +335,8 @@ fetch("https://api.overwatchleague.com/teams").then(response => response.json())
 		fetch("https://api.overwatchleague.com/schedule").then(response => response.json()).then(
 			(resultSchedule) => 
 			{
-				ReactDOM.render(<ContentWrapper schedule={resultSchedule} teams={resultTeams} />, document.getElementById("wrapper"));
+				var schedule = utils.parseURL(resultSchedule);
+				ReactDOM.render(<ContentWrapper schedule={schedule} teams={resultTeams} />, document.getElementById("wrapper"));
 			},
 			(error) => {
 				console.log(error);
