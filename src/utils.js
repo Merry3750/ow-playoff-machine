@@ -97,7 +97,7 @@ function generateURL(matchComponents)
 		binString += (rightScore.length == 1 ? "0" + rightScore : rightScore);
 	}
 
-	return "localhost:3000/?result=" + b2tob64(binString);
+	return window.location.origin + "/?result=" + b2tob64(binString);
 }
 
 function getUrlVars()
