@@ -48,7 +48,7 @@ class Dropdown extends React.Component
 			this.renderOption(3, 0),
 			this.renderOption(2, 1),
 			this.renderOption(2, 0),
-			//this.renderOption(1, 0),
+			this.renderOption(1, 0),
 			this.renderOption(0, 0),
 		];
 

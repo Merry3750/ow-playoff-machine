@@ -55,13 +55,20 @@ function parseURL(schedule)
 							binString = binString.substring(4, binString.length);
 							match.scores[0].value = parseInt(leftScore, 2);
 							match.scores[1].value = parseInt(rightScore, 2);
-							if(match.scores[0].value === 1 && match.scores[1].value === 0)
-							{
-								match.scores[0].value = 4;
-							}
-							if(match.scores[1].value === 1 && match.scores[0].value === 0)
+							if(match.scores[0].value === 1 && match.scores[1].value === 1)
 							{
 								match.scores[1].value = 4;
+								match.scores[0].value = 0;
+							}
+							if(match.scores[1].value === 2 && match.scores[0].value === 2)
+							{
+								match.scores[1].value = 0;
+								match.scores[0].value = 4;
+							}
+							if(match.scores[1].value === 3 && match.scores[0].value === 3)
+							{
+								match.scores[1].value = 0;
+								match.scores[0].value = 0;
 							}
 						}
 						week.matches[k] = match;
@@ -83,18 +90,25 @@ function generateURL(matchComponents)
 		var match = matchComponents[i].props.match;
 		var leftScore = match.scores[0].value;
 		var rightScore = match.scores[1].value;
-		if(leftScore === 4 && rightScore === 0)
-		{
-			leftScore = 1;
-		}
-		if(rightScore === 4 && leftScore === 0)
+		if(leftScore === 0 && rightScore === 4)
 		{
 			rightScore = 1;
+			leftScore = 1;
+		}
+		if(rightScore === 0 && leftScore === 4)
+		{
+			rightScore = 2;
+			leftScore = 2;
 		}
 		leftScore = leftScore.toString(2);
 		rightScore = rightScore.toString(2);
 		binString += (leftScore.length == 1 ? "0" + leftScore : leftScore);
 		binString += (rightScore.length == 1 ? "0" + rightScore : rightScore);
+	}
+
+	while(binString.charAt(binString.length - 1) === "0")
+	{
+		binString = binString.substring(0, binString.length - 1);
 	}
 
 	return window.location.origin + "/?result=" + b2tob64(binString);
@@ -140,9 +154,10 @@ function b2tob64(string)
 {
 	var ret = ""
 
-	while(string.length % 6 !== 0 && string.length % 4 !== 0)
+	
+	while(string.length % 6 !== 0 || string.length % 4 !== 0)
 	{
-		string = "0" + string;
+		string = string += "0";
 	}
 
 	while(string.length > 0)
