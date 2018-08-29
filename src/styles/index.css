@@ -134,3 +134,18 @@ body {
 .stageTabFormatter.active>.stageTabSpacerRight {
 	border-bottom-left-radius: 5px;
 }
+
+.linkWrapper{
+	margin: 4px 10px;
+}
+
+button.generateLink{
+	margin-right: 5px;
+}
+
+input.link{
+	min-width: 500px;
+}
+
+button.copyLink{
+}

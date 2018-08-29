@@ -39,7 +39,6 @@ class Schedule extends React.Component
 				this.stageComponents[i].setState({active: false});
 			}
 		}
-		console.log(utils.generateURL(g_matchComponents));
 	}
 
 	render()
@@ -64,7 +63,9 @@ class Schedule extends React.Component
 					<div className="stageTabWrapper">
 						{stageTabList}
 					</div>
-					<div className="stageTabFillerRight"/>
+					<div className="stageTabFillerRight">
+						<LinkGenerator />
+					</div>
 				</div>
 				<div>{stageList}</div>
 			</div>
@@ -306,6 +307,32 @@ class StageTab extends React.Component
 				<div className="stageTabSpacerLeft"></div>
 				<div className="stageTab" onClick={() => this.props.onClick(this)} >{this.props.stage.name}</div>
 				<div className="stageTabSpacerRight"></div>
+			</div>
+		);
+	}
+}
+
+class LinkGenerator extends React.Component
+{
+	constructor(props)
+	{
+		super(props);
+		this.state = {url: utils.generateURL()};
+	}
+
+	copyLink()
+	{
+		document.getElementById("linkInput").select();
+		document.execCommand("copy");
+	}
+
+	render()
+	{	
+		return (
+			<div className="linkWrapper">
+				<button className="generateLink" onClick={() => this.setState({url: utils.generateURL(g_matchComponents)})}>Generate Link</button>
+				<input id="linkInput" className="link" readOnly value={this.state.url}></input>
+				<button className="copyLink" onClick={() => this.copyLink()}>Copy</button>
 			</div>
 		);
 	}

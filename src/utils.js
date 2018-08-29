@@ -84,6 +84,10 @@ function parseURL(schedule)
 
 function generateURL(matchComponents)
 {
+	if(matchComponents === undefined)
+	{
+		return window.location.href;
+	}
 	var binString = "";
 	for(var i = 0; i < matchComponents.length; i++)
 	{
@@ -102,8 +106,8 @@ function generateURL(matchComponents)
 		}
 		leftScore = leftScore.toString(2);
 		rightScore = rightScore.toString(2);
-		binString += (leftScore.length == 1 ? "0" + leftScore : leftScore);
-		binString += (rightScore.length == 1 ? "0" + rightScore : rightScore);
+		binString += (leftScore.length === 1 ? "0" + leftScore : leftScore);
+		binString += (rightScore.length === 1 ? "0" + rightScore : rightScore);
 	}
 
 	while(binString.charAt(binString.length - 1) === "0")
