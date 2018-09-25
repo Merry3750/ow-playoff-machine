@@ -1,6 +1,11 @@
 import React from 'react';
 import './styles/standings.css';
 
+var CLINCH_FIRST = "+"
+var CLINCH_BYE = "*"
+var CLINCH_PLAYOFF = "^"
+var CLINCH_NONE = ""
+
 class Standings extends React.Component 
 {
 	constructor(props)
@@ -23,12 +28,13 @@ class Standings extends React.Component
 			teams[i].competitor.wins = 0;
 			teams[i].competitor.losses = 0;
 			teams[i].competitor.mapDiff = 0;
+			teams[i].competitor.matches = 0;
 			teams[i].competitor.oppH2H = [];
 			for(var j = 0; j < teams.length; j++)
 			{
 				if(i !== j)
 				{
-					teams[i].competitor.oppH2H[teams[j].competitor.id] = {match: 0, map: 0};
+					teams[i].competitor.oppH2H[teams[j].competitor.id] = {match: 0, map: 0, magicNumber:{match: 0, map: 0}};
 				}
 			}
 		}
@@ -42,6 +48,8 @@ class Standings extends React.Component
 				{
 					var index = (match.competitors[0].id === teams[j].competitor.id ? 0 : 1);
 					var otherIndex = 1 - index;
+
+					teams[j].competitor.matches++
 
 					var oppId = match.competitors[otherIndex].id
 					
@@ -59,6 +67,21 @@ class Standings extends React.Component
 					var mapDiff = match.scores[index].value - match.scores[otherIndex].value;
 					teams[j].competitor.mapDiff += mapDiff;
 					teams[j].competitor.oppH2H[oppId].map += mapDiff;
+				}
+			}
+		}
+
+
+		for(var i = 0; i < teams.length; i++)
+		{
+			for(var j = 0; j < teams.length; j++)
+			{
+				if(i !== j)
+				{
+					teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber.match = teams[i].competitor.matches - teams[i].competitor.wins - teams[j].competitor.losses;
+					var gamesRemaining = teams[i].competitor.matches - teams[i].competitor.wins - teams[i].competitor.losses
+					var oppGamesRemaining = teams[j].competitor.matches - teams[j].competitor.wins - teams[j].competitor.losses
+					teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber.map = (gamesRemaining + oppGamesRemaining) * 4 + teams[j].competitor.mapDiff - teams[i].competitor.mapDiff;
 				}
 			}
 		}
@@ -87,23 +110,104 @@ class Standings extends React.Component
 			}
 		});
 
+		var maxSeed;
+		switch(this.props.type)
+		{
+			case "OWL_StageA":
+				maxSeed = 3;
+				break;
+			case "OWL_StageB":
+				maxSeed = 4;
+				break;
+			default:
+			case "OWL_Overall":
+				maxSeed = 6;
+				break;
+		}
+
 		var standingPlaces = [];
 		var divisions = [];
 		var lastDivisionLeadSeed = 0;
 		var lastWildCardSeed = this.props.teams.owl_divisions.length;
-		for(var j = 0; j < teams.length; j++)
+		for(var i = 0; i < teams.length; i++)
 		{
 			var seed = 0;
-			if (!divisions.includes(teams[j].competitor.owl_division) || this.props.type !== "OWL_Overall")
+			var clinch = CLINCH_NONE
+			if (!divisions.includes(teams[i].competitor.owl_division) || this.props.type !== "OWL_Overall" )
 			{
-				divisions.push(teams[j].competitor.owl_division);
+				divisions.push(teams[i].competitor.owl_division);
 				seed = ++lastDivisionLeadSeed;
+				if(i === 0)
+				{
+					clinch = CLINCH_FIRST
+					for(var j = i + 1; j < teams.length; j++)
+					{
+						var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
+						if(magicNumber.match > 0 || (magicNumber.match === 0 && magicNumber.map >= 0))
+						{
+							clinch = CLINCH_NONE
+							break;
+						}
+					}
+				}
+				if (clinch === CLINCH_NONE && this.props.type === "OWL_Overall")
+				{
+					clinch = CLINCH_BYE
+					for(var j = i + 1; j < teams.length; j++)
+					{
+						var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
+						if((magicNumber.match > 0 || (magicNumber.match === 0 && magicNumber.map >= 0)) && teams[i].competitor.owl_division !== teams[j].competitor.owl_division)
+						{
+							clinch = CLINCH_NONE
+						}
+					}
+				} 
+				if (clinch === CLINCH_NONE)
+				{
+					var numAhead = 0
+					var aheadSameDivision = false
+					for(var j = i + 1; j < teams.length; j++)
+					{
+						var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
+						if(magicNumber.match < 0 || (magicNumber.match === 0 && magicNumber.map < 0))
+						{
+							numAhead++;
+							if(teams[i].competitor.owl_division === teams[j].competitor.owl_division)
+							{
+								aheadSameDivision = true
+							}
+						}
+					}
+					if(numAhead >= teams.length - maxSeed && aheadSameDivision)
+					{
+						clinch = CLINCH_PLAYOFF
+					}
+				}
 			}
 			else
 			{
 				seed = ++lastWildCardSeed;
+
+				var numAhead = 0
+				var aheadSameDivision = false
+				for(var j = i + 1; j < teams.length; j++)
+				{
+					var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
+					if(magicNumber.match < 0 || (magicNumber.match === 0 && magicNumber.map < 0))
+					{
+						numAhead++;
+						if(teams[i].competitor.owl_division === teams[j].competitor.owl_division)
+						{
+							aheadSameDivision = true
+						}
+					}
+				}
+				if(numAhead >= teams.length - maxSeed && aheadSameDivision)
+				{
+					clinch = CLINCH_PLAYOFF
+				}
 			}
-			standingPlaces.push(<StandingPlace key={teams[j].competitor.id} team={teams[j]} seed={seed} type={this.props.type}/>);
+			standingPlaces.push(<StandingPlace key={teams[i].competitor.id} team={teams[i]} seed={seed} type={this.props.type} clinch={clinch}/>);
 		}
 
 		return (
@@ -154,10 +258,15 @@ class StandingPlace extends React.Component
 		}
 
 		var inPlayoffs = this.props.seed <= maxSeed
-		var seed = inPlayoffs ? this.props.seed : "";
 		
 		var nameStyle = {
 			fontWeight: inPlayoffs ? "bold" : "normal",	
+		};
+
+		var clinchIsPlus = this.props.clinch === "+"
+		var clinchStyle = {
+			verticalAlign: clinchIsPlus ? "super" : "middle",
+			fontSize: clinchIsPlus ? "smaller" : ""
 		};
 
 		return (
@@ -166,7 +275,7 @@ class StandingPlace extends React.Component
 					<div>	
 						<div className="image" style={imgStyle} />
 						<div className="standingsColumnNameName" style={nameStyle} >{team.name}</div>
-						<div className="standingsColumnNameSeed">{seed}</div>
+						<div className="standingsColumnNameClinch" style={clinchStyle}>{this.props.clinch}</div>
 					</div>
 				</td>
 				<td className="standingsColumnData">

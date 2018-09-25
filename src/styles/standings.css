@@ -34,14 +34,12 @@ td.standingsColumnName>div>div {
 	margin-left: 3px;
 }
 
-.standingsColumnNameSeed {
-	font-size: 12px;
-	vertical-align: middle;
-	margin: 5px;
-}
-
 .standingsColumnData {
 	border-left: 1px solid #888888;
 	min-width: 45px;
+}
+
+sup{
+	font-weight: normal;
 }
 

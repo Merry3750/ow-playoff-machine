@@ -80,7 +80,6 @@ class Stage extends React.Component
 	{
 		super(props);
 		this.matchComponents = [];
-		this.standings;
 		this.state = {active: false};
 		//console.log(props);
 	}
@@ -207,6 +206,11 @@ class Match extends React.Component
 		var match = this.props.match;
 		var scoreA = match.scores[0].value;
 		var scoreB = match.scores[1].value;
+		if(scoreA === 0 && scoreB === 0)
+		{
+			scoreA = " "
+			scoreB = " "
+		}
 		var id="match_" + match.id;
 
 		return (
@@ -354,6 +358,13 @@ class ContentWrapper extends React.Component
 			</div>
 		);
 	}
+}
+
+var debug = window.location.href.startsWith("http://localhost");
+
+if(debug)
+{
+	document.title = "(DEBUG) " + document.title;
 }
 
 fetch("https://api.overwatchleague.com/teams").then(response => response.json()).then(
