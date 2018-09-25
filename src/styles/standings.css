@@ -13,6 +13,10 @@ table.standingsTable div {
 	vertical-align: middle;
 }
 
+table.standingsTable .image {
+
+}
+
 tr.standingsRow {
 	border-top: 2px solid black;
 }
@@ -39,7 +43,18 @@ td.standingsColumnName>div>div {
 	min-width: 45px;
 }
 
+.standingsTableFooter {
+	font-size: 12px;
+	border-top: 2px solid black;
+	padding: 3px 0;
+}
+
+.standingsTableFooter>span {
+	margin: 0 7px;
+}
+
 sup{
 	font-weight: normal;
+	vertical-align: top
 }
 

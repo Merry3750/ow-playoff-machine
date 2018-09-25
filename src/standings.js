@@ -125,6 +125,8 @@ class Standings extends React.Component
 				break;
 		}
 
+		var clinches = {first: false, bye: false, playoff: false};
+
 		var standingPlaces = [];
 		var divisions = [];
 		var lastDivisionLeadSeed = 0;
@@ -132,40 +134,40 @@ class Standings extends React.Component
 		for(var i = 0; i < teams.length; i++)
 		{
 			var seed = 0;
-			var clinch = CLINCH_NONE
+			var clinch = CLINCH_NONE;
 			if (!divisions.includes(teams[i].competitor.owl_division) || this.props.type !== "OWL_Overall" )
 			{
 				divisions.push(teams[i].competitor.owl_division);
 				seed = ++lastDivisionLeadSeed;
 				if(i === 0)
 				{
-					clinch = CLINCH_FIRST
+					clinch = CLINCH_FIRST;
 					for(var j = i + 1; j < teams.length; j++)
 					{
 						var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
 						if(magicNumber.match > 0 || (magicNumber.match === 0 && magicNumber.map >= 0))
 						{
-							clinch = CLINCH_NONE
+							clinch = CLINCH_NONE;
 							break;
 						}
 					}
 				}
 				if (clinch === CLINCH_NONE && this.props.type === "OWL_Overall")
 				{
-					clinch = CLINCH_BYE
+					clinch = CLINCH_BYE;
 					for(var j = i + 1; j < teams.length; j++)
 					{
-						var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
+						var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber;
 						if((magicNumber.match > 0 || (magicNumber.match === 0 && magicNumber.map >= 0)) && teams[i].competitor.owl_division !== teams[j].competitor.owl_division)
 						{
-							clinch = CLINCH_NONE
+							clinch = CLINCH_NONE;
 						}
 					}
 				} 
 				if (clinch === CLINCH_NONE)
 				{
-					var numAhead = 0
-					var aheadSameDivision = false
+					var numAhead = 0;
+					var aheadSameDivision = false;
 					for(var j = i + 1; j < teams.length; j++)
 					{
 						var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
@@ -174,13 +176,13 @@ class Standings extends React.Component
 							numAhead++;
 							if(teams[i].competitor.owl_division === teams[j].competitor.owl_division)
 							{
-								aheadSameDivision = true
+								aheadSameDivision = true;
 							}
 						}
 					}
 					if(numAhead >= teams.length - maxSeed && aheadSameDivision)
 					{
-						clinch = CLINCH_PLAYOFF
+						clinch = CLINCH_PLAYOFF;
 					}
 				}
 			}
@@ -188,8 +190,8 @@ class Standings extends React.Component
 			{
 				seed = ++lastWildCardSeed;
 
-				var numAhead = 0
-				var aheadSameDivision = false
+				var numAhead = 0;
+				var aheadSameDivision = false;
 				for(var j = i + 1; j < teams.length; j++)
 				{
 					var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
@@ -198,16 +200,50 @@ class Standings extends React.Component
 						numAhead++;
 						if(teams[i].competitor.owl_division === teams[j].competitor.owl_division)
 						{
-							aheadSameDivision = true
+							aheadSameDivision = true;
 						}
 					}
 				}
 				if(numAhead >= teams.length - maxSeed && aheadSameDivision)
 				{
-					clinch = CLINCH_PLAYOFF
+					clinch = CLINCH_PLAYOFF;
 				}
 			}
+			switch(clinch)
+			{
+				case CLINCH_FIRST:
+					clinches.first = true;
+					break;
+				case CLINCH_BYE:
+					clinches.bye = true;
+					break;
+				case CLINCH_PLAYOFF:
+					clinches.playoff = true;
+					break;
+				default:
+					break;
+			}
 			standingPlaces.push(<StandingPlace key={teams[i].competitor.id} team={teams[i]} seed={seed} type={this.props.type} clinch={clinch}/>);
+		}
+
+		var tableFooterText = [];
+		var tableFooter = "";
+		if(clinches.first)
+		{
+			tableFooterText.push(<span key={CLINCH_FIRST}><sup>{CLINCH_FIRST}</sup>-clinched first place</span>);
+		}
+		if(clinches.bye)
+		{
+			tableFooterText.push(<span key={CLINCH_BYE}>{CLINCH_BYE}-clinched first round bye</span>);
+		}
+		if(clinches.playoff)
+		{
+			tableFooterText.push(<span key={CLINCH_PLAYOFF}>{CLINCH_PLAYOFF}-clinched playoffs</span>);
+		}
+
+		if(tableFooterText.length > 0)
+		{
+			tableFooter = <tr><td className="standingsTableFooter" colSpan="4">{tableFooterText}</td></tr>;
 		}
 
 		return (
@@ -220,6 +256,7 @@ class Standings extends React.Component
 						<th className="standingsColumnData">+/-</th>
 					</tr>
 					{standingPlaces}
+					{tableFooter}
 				</tbody>
 			</table>
 		);
@@ -265,7 +302,7 @@ class StandingPlace extends React.Component
 
 		var clinchIsPlus = this.props.clinch === "+"
 		var clinchStyle = {
-			verticalAlign: clinchIsPlus ? "super" : "middle",
+			verticalAlign: clinchIsPlus ? "top" : "middle",
 			fontSize: clinchIsPlus ? "smaller" : ""
 		};
 
