@@ -81,7 +81,7 @@ class Stage extends React.Component
 		super(props);
 		this.matchComponents = [];
 		this.state = {active: false};
-		//console.log(props);
+		console.log(props);
 	}
 
 	addMatchComponent(component)
@@ -118,7 +118,7 @@ class Stage extends React.Component
 		//WARNING: HARDCODED THING
 		var stageType = "OWL_Stage";
 
-		var stageList = <Standings matchComponents={this.matchComponents} teams={this.props.teams} ref={(s) => this.standings = s} type={stageType} global={false} />
+		var stageList = <Standings matchComponents={this.matchComponents} teams={this.props.teams} ref={(s) => this.standings = s} type={stageType} global={false} title={this.props.stage.name} />
 
 		return (
 			<div className="stage" style={divStyle}>
@@ -365,7 +365,7 @@ class ContentWrapper extends React.Component
 		return (
 			<div>
 				<Schedule schedule={this.props.schedule} teams={this.props.teams} />
-				<Standings matchComponents={g_matchComponents} teams={this.props.teams} global={true} type={"OWL_Overall"} ref={(s) => {g_standingsComponent = s}}/>
+				<Standings matchComponents={g_matchComponents} teams={this.props.teams} global={true} type={"OWL_Overall"} ref={(s) => {g_standingsComponent = s}} title={"Overall"} />
 			</div>
 		);
 	}

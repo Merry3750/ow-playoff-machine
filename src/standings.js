@@ -28,6 +28,7 @@ class Standings extends React.Component
 
 	render()
 	{
+		console.log(this.props)
 		var teams = this.props.teams.competitors;
 		var matchComponents = this.props.matchComponents;
 		for(var i = 0; i < teams.length; i++)
@@ -280,15 +281,18 @@ class Standings extends React.Component
 		{
 			tableFooterText.push(<span key={CLINCH_PLAYIN}><sup>{CLINCH_PLAYIN}</sup>-clinched playin tournament or better</span>);
 		}
-
+		
 		if(tableFooterText.length > 0)
 		{
 			tableFooter = <tr><td className="standingsTableFooter" colSpan="4">{tableFooterText}</td></tr>;
 		}
 
+		var tableHeader = <tr><td className="standingsTableHeader" colSpan="4">{this.props.title}</td></tr>;
+
 		return (
 			<table className="standingsTable">
 				<tbody>
+					{tableHeader}
 					<tr>
 						<th>Team</th>
 						<th className="standingsColumnData">W</th>
@@ -313,7 +317,6 @@ class StandingPlace extends React.Component
 	render()
 	{
 		var team = this.props.team.competitor;	
-		console.log(team)
 		team.mapDiff = (team.mapDiff > 0 ? "+" + team.mapDiff : team.mapDiff);
 
 		var imgStyle = {
