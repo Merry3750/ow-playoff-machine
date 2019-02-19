@@ -2,7 +2,7 @@ import React from 'react';
 import './styles/standings.css';
 
 var CLINCH_FIRST = "+"
-var CLINCH_CONFERENCE = "*"
+var CLINCH_DIVISION = "*"
 var CLINCH_PLAYOFF = "^"
 var CLINCH_PLAYIN = "†"
 var CLINCH_PLAYIN_BYE = "‡"
@@ -130,7 +130,7 @@ class Standings extends React.Component
 				break;
 		}
 
-		var clinches = {first: false, conference: false, playoff: false, playin: false, playinBye: false};
+		var clinches = {first: false, division: false, playoff: false, playin: false, playinBye: false};
 
 		var standingPlaces = [];
 		var divisions = [];
@@ -150,7 +150,7 @@ class Standings extends React.Component
 					for(var j = i + 1; j < teams.length; j++)
 					{
 						var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
-						if(magicNumber.match > 0 || (magicNumber.match === 0 && magicNumber.map >= 0))
+						if(magicNumber.match > 0 || (magicNumber.match === 0 && magicNumber.map > 0))
 						{
 							clinch = CLINCH_NONE;
 							break;
@@ -159,11 +159,11 @@ class Standings extends React.Component
 				}
 				if (clinch === CLINCH_NONE && this.props.type === "OWL_Overall")
 				{
-					clinch = CLINCH_CONFERENCE;
+					clinch = CLINCH_DIVISION;
 					for(var j = i + 1; j < teams.length; j++)
 					{
 						var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber;
-						if((magicNumber.match > 0 || (magicNumber.match === 0 && magicNumber.map >= 0)) && teams[i].competitor.owl_division !== teams[j].competitor.owl_division)
+						if((magicNumber.match > 0 || (magicNumber.match === 0 && magicNumber.map > 0)) && teams[i].competitor.owl_division !== teams[j].competitor.owl_division)
 						{
 							clinch = CLINCH_NONE;
 						}
@@ -176,7 +176,7 @@ class Standings extends React.Component
 					for(var j = i + 1; j < teams.length; j++)
 					{
 						var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
-						if(magicNumber.match <= 0 || (magicNumber.match === 0 && magicNumber.map < 0))
+						if(magicNumber.match < 0 || (magicNumber.match === 0 && magicNumber.map <= 0))
 						{
 							numAhead++;
 							if(teams[i].competitor.owl_division === teams[j].competitor.owl_division)
@@ -209,7 +209,7 @@ class Standings extends React.Component
 				for(var j = i + 1; j < teams.length; j++)
 				{
 					var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
-					if(magicNumber.match <= 0 || (magicNumber.match === 0 && magicNumber.map < 0))
+					if(magicNumber.match < 0 || (magicNumber.match === 0 && magicNumber.map <= 0))
 					{
 						numAhead++;
 						if(teams[i].competitor.owl_division === teams[j].competitor.owl_division)
@@ -237,8 +237,8 @@ class Standings extends React.Component
 				case CLINCH_FIRST:
 					clinches.first = true;
 					break;
-				case CLINCH_CONFERENCE:
-					clinches.conference = true;
+				case CLINCH_DIVISION:
+					clinches.division = true;
 					break;
 				case CLINCH_PLAYOFF:
 					clinches.playoff = true;
@@ -261,15 +261,15 @@ class Standings extends React.Component
 		{
 			tableFooterText.push(<span key={CLINCH_FIRST}><sup>{CLINCH_FIRST}</sup>-clinched first place</span>);
 		}
-		if(clinches.conference)
+		if(clinches.division)
 		{
-			tableFooterText.push(<span key={CLINCH_CONFERENCE}>{CLINCH_CONFERENCE}-clinched conference</span>);
+			tableFooterText.push(<span key={CLINCH_DIVISION}>{CLINCH_DIVISION}-clinched division</span>);
 		}
 		if(clinches.playoff)
 		{
 			tableFooterText.push(<span key={CLINCH_PLAYOFF}>{CLINCH_PLAYOFF}-clinched playoffs</span>);
 		}
-		if((clinches.first || clinches.conference || clinches.playoff) && (clinches.playin || clinches.playinBye))
+		if((clinches.first || clinches.division || clinches.playoff) && (clinches.playin || clinches.playinBye))
 		{
 			tableFooterText.push(<br></br>);
 		}
