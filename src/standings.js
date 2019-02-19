@@ -176,7 +176,7 @@ class Standings extends React.Component
 					for(var j = i + 1; j < teams.length; j++)
 					{
 						var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
-						if(magicNumber.match < 0 || (magicNumber.match === 0 && magicNumber.map < 0))
+						if(magicNumber.match <= 0 || (magicNumber.match === 0 && magicNumber.map < 0))
 						{
 							numAhead++;
 							if(teams[i].competitor.owl_division === teams[j].competitor.owl_division)
@@ -209,7 +209,7 @@ class Standings extends React.Component
 				for(var j = i + 1; j < teams.length; j++)
 				{
 					var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
-					if(magicNumber.match < 0 || (magicNumber.match === 0 && magicNumber.map < 0))
+					if(magicNumber.match <= 0 || (magicNumber.match === 0 && magicNumber.map < 0))
 					{
 						numAhead++;
 						if(teams[i].competitor.owl_division === teams[j].competitor.owl_division)
