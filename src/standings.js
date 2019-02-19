@@ -2,9 +2,16 @@ import React from 'react';
 import './styles/standings.css';
 
 var CLINCH_FIRST = "+"
-var CLINCH_BYE = "*"
+var CLINCH_CONFERENCE = "*"
 var CLINCH_PLAYOFF = "^"
+var CLINCH_PLAYIN = "†"
+var CLINCH_PLAYIN_BYE = "‡"
 var CLINCH_NONE = ""
+
+var PLAYIN_BYE_MAXSEED = 8;
+var PLAYIN_MAXSEED = 12;
+
+var DIVISION_SIZE = 10
 
 class Standings extends React.Component 
 {
@@ -113,10 +120,7 @@ class Standings extends React.Component
 		var maxSeed;
 		switch(this.props.type)
 		{
-			case "OWL_StageA":
-				maxSeed = 3;
-				break;
-			case "OWL_StageB":
+			case "OWL_Stage":
 				maxSeed = 4;
 				break;
 			default:
@@ -125,7 +129,7 @@ class Standings extends React.Component
 				break;
 		}
 
-		var clinches = {first: false, bye: false, playoff: false};
+		var clinches = {first: false, conference: false, playoff: false, playin: false, playinBye: false};
 
 		var standingPlaces = [];
 		var divisions = [];
@@ -154,7 +158,7 @@ class Standings extends React.Component
 				}
 				if (clinch === CLINCH_NONE && this.props.type === "OWL_Overall")
 				{
-					clinch = CLINCH_BYE;
+					clinch = CLINCH_CONFERENCE;
 					for(var j = i + 1; j < teams.length; j++)
 					{
 						var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber;
@@ -167,7 +171,7 @@ class Standings extends React.Component
 				if (clinch === CLINCH_NONE)
 				{
 					var numAhead = 0;
-					var aheadSameDivision = false;
+					var aheadSameDivision = 0;
 					for(var j = i + 1; j < teams.length; j++)
 					{
 						var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
@@ -176,11 +180,20 @@ class Standings extends React.Component
 							numAhead++;
 							if(teams[i].competitor.owl_division === teams[j].competitor.owl_division)
 							{
-								aheadSameDivision = true;
+								aheadSameDivision++;
 							}
 						}
 					}
-					if(numAhead >= teams.length - maxSeed && aheadSameDivision)
+
+					if(numAhead >= teams.length - PLAYIN_MAXSEED && aheadSameDivision > DIVISION_SIZE - PLAYIN_MAXSEED - 1 && this.props.type === "OWL_Overall")
+					{
+						clinch = CLINCH_PLAYIN;
+					}
+					if(numAhead >= teams.length - PLAYIN_BYE_MAXSEED && aheadSameDivision > DIVISION_SIZE - PLAYIN_BYE_MAXSEED - 1 && this.props.type === "OWL_Overall")
+					{
+						clinch = CLINCH_PLAYIN_BYE;
+					}
+					if(numAhead >= teams.length - maxSeed && aheadSameDivision > DIVISION_SIZE - maxSeed - 1)
 					{
 						clinch = CLINCH_PLAYOFF;
 					}
@@ -191,7 +204,7 @@ class Standings extends React.Component
 				seed = ++lastWildCardSeed;
 
 				var numAhead = 0;
-				var aheadSameDivision = false;
+				var aheadSameDivision = 0;
 				for(var j = i + 1; j < teams.length; j++)
 				{
 					var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
@@ -200,11 +213,20 @@ class Standings extends React.Component
 						numAhead++;
 						if(teams[i].competitor.owl_division === teams[j].competitor.owl_division)
 						{
-							aheadSameDivision = true;
+							aheadSameDivision++;
 						}
 					}
 				}
-				if(numAhead >= teams.length - maxSeed && aheadSameDivision)
+
+				if(numAhead >= teams.length - PLAYIN_MAXSEED && aheadSameDivision >= DIVISION_SIZE - PLAYIN_MAXSEED + 1 && this.props.type === "OWL_Overall")
+				{
+					clinch = CLINCH_PLAYIN;
+				}
+				if(numAhead >= teams.length - PLAYIN_BYE_MAXSEED && aheadSameDivision >= DIVISION_SIZE - PLAYIN_BYE_MAXSEED + 1 && this.props.type === "OWL_Overall")
+				{
+					clinch = CLINCH_PLAYIN_BYE;
+				}
+				if(numAhead >= teams.length - maxSeed && aheadSameDivision >= DIVISION_SIZE - maxSeed + 1)
 				{
 					clinch = CLINCH_PLAYOFF;
 				}
@@ -214,11 +236,17 @@ class Standings extends React.Component
 				case CLINCH_FIRST:
 					clinches.first = true;
 					break;
-				case CLINCH_BYE:
-					clinches.bye = true;
+				case CLINCH_CONFERENCE:
+					clinches.conference = true;
 					break;
 				case CLINCH_PLAYOFF:
 					clinches.playoff = true;
+					break;
+				case CLINCH_PLAYIN_BYE:
+					clinches.playinBye = true;
+					break;
+				case CLINCH_PLAYIN:
+					clinches.playin = true;
 					break;
 				default:
 					break;
@@ -232,13 +260,25 @@ class Standings extends React.Component
 		{
 			tableFooterText.push(<span key={CLINCH_FIRST}><sup>{CLINCH_FIRST}</sup>-clinched first place</span>);
 		}
-		if(clinches.bye)
+		if(clinches.conference)
 		{
-			tableFooterText.push(<span key={CLINCH_BYE}>{CLINCH_BYE}-clinched first round bye</span>);
+			tableFooterText.push(<span key={CLINCH_CONFERENCE}>{CLINCH_CONFERENCE}-clinched conference</span>);
 		}
 		if(clinches.playoff)
 		{
 			tableFooterText.push(<span key={CLINCH_PLAYOFF}>{CLINCH_PLAYOFF}-clinched playoffs</span>);
+		}
+		if((clinches.first || clinches.conference || clinches.playoff) && (clinches.playin || clinches.playinBye))
+		{
+			tableFooterText.push(<br></br>);
+		}
+		if(clinches.playinBye)
+		{
+			tableFooterText.push(<span key={CLINCH_PLAYIN_BYE}><sup>{CLINCH_PLAYIN_BYE}</sup>-clinched playin bye or better</span>);
+		}
+		if(clinches.playin)
+		{
+			tableFooterText.push(<span key={CLINCH_PLAYIN}><sup>{CLINCH_PLAYIN}</sup>-clinched playin tournament or better</span>);
 		}
 
 		if(tableFooterText.length > 0)
@@ -273,6 +313,7 @@ class StandingPlace extends React.Component
 	render()
 	{
 		var team = this.props.team.competitor;	
+		console.log(team)
 		team.mapDiff = (team.mapDiff > 0 ? "+" + team.mapDiff : team.mapDiff);
 
 		var imgStyle = {
@@ -282,10 +323,7 @@ class StandingPlace extends React.Component
 		var maxSeed;
 		switch(this.props.type)
 		{
-			case "OWL_StageA":
-				maxSeed = 3;
-				break;
-			case "OWL_StageB":
+			case "OWL_Stage":
 				maxSeed = 4;
 				break;
 			default:
@@ -294,16 +332,18 @@ class StandingPlace extends React.Component
 				break;
 		}
 
-		var inPlayoffs = this.props.seed <= maxSeed
+		var inPlayoffs = this.props.seed <= maxSeed;
+		var inPlayin = this.props.seed <= PLAYIN_MAXSEED && !inPlayoffs && this.props.type == "OWL_Overall";
 		
 		var nameStyle = {
-			fontWeight: inPlayoffs ? "bold" : "normal",	
+			fontWeight: inPlayoffs || inPlayin ? "bold" : "normal",	
+			fontStyle: inPlayoffs ? "italic" : "normal",	
 		};
 
-		var clinchIsPlus = this.props.clinch === "+"
+		var clinchNeedsSuperscript = this.props.clinch === "+" || this.props.clinch === "†" || this.props.clinch === "‡" ;
 		var clinchStyle = {
-			verticalAlign: clinchIsPlus ? "top" : "middle",
-			fontSize: clinchIsPlus ? "smaller" : ""
+			verticalAlign: clinchNeedsSuperscript ? "top" : "middle",
+			fontSize: clinchNeedsSuperscript ? "smaller" : ""
 		};
 
 		return (

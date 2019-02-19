@@ -4,12 +4,12 @@ function isBright(color)
 	return getBrightness(color) > 90;
 }
 
-function areContrasting(colorA, colorB)
+function areContrasting(colorA, colorB, threshold = 90)
 {
 	var brightnessA = getBrightness(colorA);
 	var brightnessB = getBrightness(colorB);
 
-	return Math.abs(brightnessA	- brightnessB) > 90;
+	return Math.abs(brightnessA	- brightnessB) > threshold;
 }
 
 function getBrightness(color)

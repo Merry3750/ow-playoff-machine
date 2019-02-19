@@ -116,7 +116,7 @@ class Stage extends React.Component
 		}
 
 		//WARNING: HARDCODED THING
-		var stageType = this.props.stage.id <= 2 ? "OWL_StageA" : "OWL_StageB";
+		var stageType = "OWL_Stage";
 
 		var stageList = <Standings matchComponents={this.matchComponents} teams={this.props.teams} ref={(s) => this.standings = s} type={stageType} global={false} />
 
@@ -253,14 +253,25 @@ class Team extends React.Component
 	render()
 	{
 		var team = this.props.team;
+		var primaryColor = team.primaryColor;
+		var secondaryColor = team.secondaryColor;
+		if(!utils.areContrasting(primaryColor, "bbbbbb", 10))
+		{
+			primaryColor = team.secondaryColor;
+			secondaryColor = team.primaryColor;
+			if(!utils.areContrasting(primaryColor, "bbbbbb", 10))
+			{
+				primaryColor = "000000"
+			}
+		}
 		var getsColor = (this.state.clickTarget && this.state.clickTarget === team.id) ||  
 						(!this.state.clickTarget && this.props.winner);
-		var backgroundColor = (getsColor ? "#" + team.primaryColor : "#bbbbbb");
-		var textColor = (getsColor ? "#" + team.secondaryColor : "#000000");
+		var backgroundColor = (getsColor ? "#" + primaryColor : "#bbbbbb");
+		var textColor = (getsColor ? "#" + secondaryColor : "#000000");
 		var side = this.props.left ? " left" : " right";
 
 		var wrapperStyle = {
-			border: "2px solid #" + team.primaryColor,
+			border: "2px solid #" + primaryColor,
 			backgroundColor: backgroundColor,
 		};
 		var imgStyle = {
