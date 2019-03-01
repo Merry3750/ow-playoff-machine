@@ -28,9 +28,10 @@ class Standings extends React.Component
 
 	render()
 	{
-		console.log(this.props)
+		//console.log(this.props)
 		var teams = this.props.teams.competitors;
 		var matchComponents = this.props.matchComponents;
+		var unplayedMatches = [];
 		for(var i = 0; i < teams.length; i++)
 		{
 			teams[i].competitor.wins = 0;
@@ -50,6 +51,10 @@ class Standings extends React.Component
 		for(var i = 0; i < matchComponents.length; i++)
 		{
 			var match = matchComponents[i].props.match;
+			if(match.scores[0] === 0 && match.scores[1] === 0)
+			{
+				unplayedMatches.push(match);
+			}
 			for (var j = 0; j < teams.length; j++)
 			{
 				if(match.competitors[0].id === teams[j].competitor.id || match.competitors[1].id === teams[j].competitor.id)
@@ -122,7 +127,7 @@ class Standings extends React.Component
 		switch(this.props.type)
 		{
 			case "OWL_Stage":
-				maxSeed = 4;
+				maxSeed = 8;
 				break;
 			default:
 			case "OWL_Overall":
@@ -149,8 +154,7 @@ class Standings extends React.Component
 					clinch = CLINCH_FIRST;
 					for(var j = i + 1; j < teams.length; j++)
 					{
-						var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
-						if(magicNumber.match > 0 || (magicNumber.match === 0 && magicNumber.map > 0))
+						if(!clinchAhead(teams[i], teams[j], unplayedMatches))
 						{
 							clinch = CLINCH_NONE;
 							break;
@@ -162,8 +166,7 @@ class Standings extends React.Component
 					clinch = CLINCH_DIVISION;
 					for(var j = i + 1; j < teams.length; j++)
 					{
-						var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber;
-						if((magicNumber.match > 0 || (magicNumber.match === 0 && magicNumber.map > 0)) && teams[i].competitor.owl_division !== teams[j].competitor.owl_division)
+						if(!clinchAhead(teams[i], teams[j], unplayedMatches) && teams[i].competitor.owl_division !== teams[j].competitor.owl_division)
 						{
 							clinch = CLINCH_NONE;
 						}
@@ -175,8 +178,7 @@ class Standings extends React.Component
 					var aheadSameDivision = 0;
 					for(var j = i + 1; j < teams.length; j++)
 					{
-						var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
-						if(magicNumber.match < 0 || (magicNumber.match === 0 && magicNumber.map <= 0))
+						if(clinchAhead(teams[i], teams[j], unplayedMatches))
 						{
 							numAhead++;
 							if(teams[i].competitor.owl_division === teams[j].competitor.owl_division)
@@ -208,8 +210,7 @@ class Standings extends React.Component
 				var aheadSameDivision = 0;
 				for(var j = i + 1; j < teams.length; j++)
 				{
-					var magicNumber = teams[i].competitor.oppH2H[teams[j].competitor.id].magicNumber
-					if(magicNumber.match < 0 || (magicNumber.match === 0 && magicNumber.map <= 0))
+					if(clinchAhead(teams[i], teams[j], unplayedMatches))
 					{
 						numAhead++;
 						if(teams[i].competitor.owl_division === teams[j].competitor.owl_division)
@@ -256,7 +257,7 @@ class Standings extends React.Component
 		}
 
 		var tableFooterText = [];
-		var tableFooter = "";
+		var tableFooter = null;
 		if(clinches.first)
 		{
 			tableFooterText.push(<span key={CLINCH_FIRST}><sup>{CLINCH_FIRST}</sup>-clinched first place</span>);
@@ -291,7 +292,7 @@ class Standings extends React.Component
 
 		return (
 			<table className="standingsTable">
-				<tbody>
+				<thead>
 					{tableHeader}
 					<tr>
 						<th>Team</th>
@@ -299,6 +300,8 @@ class Standings extends React.Component
 						<th className="standingsColumnData">L</th>
 						<th className="standingsColumnData">+/-</th>
 					</tr>
+				</thead>
+				<tbody>
 					{standingPlaces}
 					{tableFooter}
 				</tbody>
@@ -327,7 +330,7 @@ class StandingPlace extends React.Component
 		switch(this.props.type)
 		{
 			case "OWL_Stage":
-				maxSeed = 4;
+				maxSeed = 8;
 				break;
 			default:
 			case "OWL_Overall":
@@ -336,7 +339,7 @@ class StandingPlace extends React.Component
 		}
 
 		var inPlayoffs = this.props.seed <= maxSeed;
-		var inPlayin = this.props.seed <= PLAYIN_MAXSEED && !inPlayoffs && this.props.type == "OWL_Overall";
+		var inPlayin = this.props.seed <= PLAYIN_MAXSEED && !inPlayoffs && this.props.type === "OWL_Overall";
 		
 		var nameStyle = {
 			fontWeight: inPlayoffs || inPlayin ? "bold" : "normal",	
@@ -354,7 +357,7 @@ class StandingPlace extends React.Component
 				<td className="standingsColumnName">
 					<div>	
 						<div className="image" style={imgStyle} />
-						<div className="standingsColumnNameName" style={nameStyle} >{team.name}</div>
+						<div className="standingsColumnNameName" style={nameStyle}>{team.name}</div>
 						<div className="standingsColumnNameClinch" style={clinchStyle}>{this.props.clinch}</div>
 					</div>
 				</td>
@@ -370,6 +373,42 @@ class StandingPlace extends React.Component
 			</tr>
 		);
 	}
+}
+
+// returns true if teamA is guaranteed to be above teamB in the stantings, false otherwise
+function clinchAhead(teamA, teamB, unplayedMatches)
+{
+	// Tiebreakers
+	// First is total match differential
+	// If no total match differential exists it goes to total map differential
+	// If no total map differential exists it goes to head-to-head map differential
+	// If no head-to-head map differential exists it goes to head-to-head match differential
+	// If no head-to-head match differential exists it goes to a tie-breaker match
+	var oppH2H = teamA.competitor.oppH2H[teamB.competitor.id]
+	if(oppH2H.magicNumber.match < 0 || (oppH2H.magicNumber.match === 0 && oppH2H.magicNumber.map < 0))
+	{
+		return true;
+	}
+
+	// For season 2, we could just check to see if there are any unplayed matches between the teams and
+	// return false if there are any but in order to future proof it I made it more complicated
+	var numUnplayedMatches = 0;
+	for(var i = 0; i < unplayedMatches.length; i++)
+	{
+		var match = unplayedMatches[i];
+		if((match.competitors[0] === teamA && match.competitors[1] === teamB) || (match.competitors[0] === teamB && match.competitors[1] === teamA))
+		{
+			numUnplayedMatches++;
+		}
+	}
+
+	// multiply by 4 because that is the maximum map differential that can be achieved in a single match
+	if(oppH2H.map - (numUnplayedMatches * 4) > 0 || (oppH2H.map - (numUnplayedMatches * 4) === 0 && oppH2H.match - numUnplayedMatches > 0))
+	{
+		return true;
+	}
+	
+	return false;
 }
 
 export default Standings;
