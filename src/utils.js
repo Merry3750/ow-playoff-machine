@@ -28,6 +28,31 @@ function getBrightness(color)
 
 function parseURL(schedule)
 {
+	//change the score of any in-progress games to 0-0 so they aren't considered to be complete
+	for(var i = 0; i < schedule.data.stages.length; i++)
+	{
+		var stage = schedule.data.stages[i];
+		if(stage.slug.startsWith("stage"))
+		{
+			for(var j = 0; j < stage.weeks.length; j++)
+			{
+				var week = stage.weeks[j];
+				for(var k = 0; k < week.matches.length; k++)
+				{
+					var match = week.matches[k];
+					if(match.status === "IN_PROGRESS")
+					{
+						match.scores[1].value = 0;
+						match.scores[0].value = 0;
+					}
+					week.matches[k] = match;
+				}
+				stage.weeks[j] = week;
+			}
+		}
+		schedule.data.stages[i] = stage;
+	}
+
 	var resultString = getUrlParam("result");
 	if(resultString !== undefined)
 	{
@@ -79,6 +104,7 @@ function parseURL(schedule)
 			schedule.data.stages[i] = stage;
 		}
 	}
+
 	return schedule;
 }
 
