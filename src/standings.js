@@ -435,21 +435,23 @@ function clinchAhead(teamA, teamB, unplayedMatches)
 
 	// For season 2, we could just check to see if there are any unplayed matches between the teams and
 	// return false if there are any but in order to future proof it I made it more complicated
-	var numUnplayedMatches = 0;
-	for(var i = 0; i < unplayedMatches.length; i++)
+	if(oppH2H.magicNumber.match === 0 && oppH2H.magicNumber.map === 0)
 	{
-		var match = unplayedMatches[i];
-		if((match.competitors[0] === teamA && match.competitors[1] === teamB) || (match.competitors[0] === teamB && match.competitors[1] === teamA))
+		var numUnplayedMatches = 0;
+		for(var i = 0; i < unplayedMatches.length; i++)
 		{
-			numUnplayedMatches++;
+			var match = unplayedMatches[i];
+			if((match.competitors[0] === teamA && match.competitors[1] === teamB) || (match.competitors[0] === teamB && match.competitors[1] === teamA))
+			{
+				numUnplayedMatches++;
+			}
 		}
-	}
 
-	// multiply by 4 because that is the maximum map differential that can be achieved in a single match
-	if( (oppH2H.magicNumber.match === 0 && oppH2H.magicNumber.map === 0) &&
-		(oppH2H.map - (numUnplayedMatches * 4) > 0 || (oppH2H.map - (numUnplayedMatches * 4) === 0 && oppH2H.match - numUnplayedMatches > 0)))
-	{
-		return true;
+		// multiply by 4 because that is the maximum map differential that can be achieved in a single match &&
+		if(oppH2H.map - (numUnplayedMatches * 4) > 0 || (oppH2H.map - (numUnplayedMatches * 4) === 0 && oppH2H.match - numUnplayedMatches > 0))
+		{
+			return true;
+		}
 	}
 	
 	return false;
