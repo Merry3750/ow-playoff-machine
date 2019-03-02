@@ -6,8 +6,11 @@ var CLINCH_DIVISION = "*"
 var CLINCH_PLAYOFF = "^"
 var CLINCH_PLAYIN = "†"
 var CLINCH_PLAYIN_BYE = "‡"
+var CLINCH_ELIMINATED = "x"
 var CLINCH_NONE = ""
 
+var OWL_OVERALL_MAXSEED = 6;
+var OWL_STAGE_MAXSEED = 8;
 var PLAYIN_BYE_MAXSEED = 8;
 var PLAYIN_MAXSEED = 12;
 
@@ -124,18 +127,21 @@ class Standings extends React.Component
 		});
 
 		var maxSeed;
+		var totalMaxSeed;
 		switch(this.props.type)
 		{
 			case "OWL_Stage":
-				maxSeed = 8;
+				maxSeed = OWL_STAGE_MAXSEED;
+				totalMaxSeed = OWL_STAGE_MAXSEED;
 				break;
 			default:
 			case "OWL_Overall":
-				maxSeed = 6;
+				maxSeed = OWL_OVERALL_MAXSEED;
+				totalMaxSeed = PLAYIN_MAXSEED;
 				break;
 		}
 
-		var clinches = {first: false, division: false, playoff: false, playin: false, playinBye: false};
+		var clinches = {first: false, division: false, playoff: false, playin: false, playinBye: false, eliminated: false};
 
 		var standingPlaces = [];
 		var divisions = [];
@@ -175,19 +181,29 @@ class Standings extends React.Component
 				if (clinch === CLINCH_NONE)
 				{
 					var numAhead = 0;
+					var numBehind = 0;
 					var aheadSameDivision = 0;
-					for(var j = i + 1; j < teams.length; j++)
+					for(var j = 0; j < teams.length; j++)
 					{
-						if(clinchAhead(teams[i], teams[j], unplayedMatches))
+						if(i < j && clinchAhead(teams[i], teams[j], unplayedMatches))
 						{
+
 							numAhead++;
 							if(teams[i].competitor.owl_division === teams[j].competitor.owl_division)
 							{
 								aheadSameDivision++;
 							}
 						}
+						else if(i > j && clinchAhead(teams[j], teams[i], unplayedMatches))
+						{
+							numBehind++;
+						}
 					}
 
+					if(numBehind >= totalMaxSeed)
+					{
+						clinch = CLINCH_ELIMINATED;
+					}
 					if(numAhead >= teams.length - PLAYIN_MAXSEED && aheadSameDivision > DIVISION_SIZE - PLAYIN_MAXSEED - 1 && this.props.type === "OWL_Overall")
 					{
 						clinch = CLINCH_PLAYIN;
@@ -207,10 +223,15 @@ class Standings extends React.Component
 				seed = ++lastWildCardSeed;
 
 				var numAhead = 0;
+				var numBehind = 0;
 				var aheadSameDivision = 0;
-				for(var j = i + 1; j < teams.length; j++)
+				for(var j = 0; j < teams.length; j++)
 				{
-					if(clinchAhead(teams[i], teams[j], unplayedMatches))
+					if(j === i)
+					{
+						continue;
+					}
+					if(i < j && clinchAhead(teams[i], teams[j], unplayedMatches))
 					{
 						numAhead++;
 						if(teams[i].competitor.owl_division === teams[j].competitor.owl_division)
@@ -218,8 +239,16 @@ class Standings extends React.Component
 							aheadSameDivision++;
 						}
 					}
+					else if(i > j && clinchAhead(teams[j], teams[i], unplayedMatches))
+					{
+						numBehind++;
+					}
 				}
 
+				if(numBehind >= totalMaxSeed)
+				{
+					clinch = CLINCH_ELIMINATED;
+				}
 				if(numAhead >= teams.length - PLAYIN_MAXSEED && aheadSameDivision >= DIVISION_SIZE - PLAYIN_MAXSEED + 1 && this.props.type === "OWL_Overall")
 				{
 					clinch = CLINCH_PLAYIN;
@@ -250,6 +279,9 @@ class Standings extends React.Component
 				case CLINCH_PLAYIN:
 					clinches.playin = true;
 					break;
+				case CLINCH_ELIMINATED:
+					clinches.eliminated = true;
+					break;
 				default:
 					break;
 			}
@@ -272,7 +304,7 @@ class Standings extends React.Component
 		}
 		if((clinches.first || clinches.division || clinches.playoff) && (clinches.playin || clinches.playinBye))
 		{
-			tableFooterText.push(<br></br>);
+			tableFooterText.push(<br key={"break1"}></br>);
 		}
 		if(clinches.playinBye)
 		{
@@ -281,6 +313,16 @@ class Standings extends React.Component
 		if(clinches.playin)
 		{
 			tableFooterText.push(<span key={CLINCH_PLAYIN}><sup>{CLINCH_PLAYIN}</sup>-clinched playin tournament or better</span>);
+		}
+		if(clinches.eliminated)
+		{
+			
+			if(((clinches.first || clinches.division || clinches.playoff) && (clinches.playin && clinches.playinBye)) || 
+				(clinches.first && clinches.division && clinches.playoff) && !(clinches.playin && clinches.playinBye))
+			{
+				tableFooterText.push(<br key={"break2"}></br>);
+			}
+			tableFooterText.push(<span key={CLINCH_ELIMINATED}><sup>{CLINCH_ELIMINATED}</sup>-eliminated from playoff contention</span>);
 		}
 		
 		if(tableFooterText.length > 0)
@@ -330,11 +372,11 @@ class StandingPlace extends React.Component
 		switch(this.props.type)
 		{
 			case "OWL_Stage":
-				maxSeed = 8;
+				maxSeed = OWL_STAGE_MAXSEED;
 				break;
 			default:
 			case "OWL_Overall":
-				maxSeed = 6;
+				maxSeed = OWL_OVERALL_MAXSEED;
 				break;
 		}
 
@@ -346,7 +388,7 @@ class StandingPlace extends React.Component
 			fontStyle: inPlayoffs ? "italic" : "normal",	
 		};
 
-		var clinchNeedsSuperscript = this.props.clinch === "+" || this.props.clinch === "†" || this.props.clinch === "‡" ;
+		var clinchNeedsSuperscript = this.props.clinch !== "*" && this.props.clinch !== "^";
 		var clinchStyle = {
 			verticalAlign: clinchNeedsSuperscript ? "top" : "middle",
 			fontSize: clinchNeedsSuperscript ? "smaller" : ""
@@ -378,6 +420,7 @@ class StandingPlace extends React.Component
 // returns true if teamA is guaranteed to be above teamB in the stantings, false otherwise
 function clinchAhead(teamA, teamB, unplayedMatches)
 {
+	var test = false
 	// Tiebreakers
 	// First is total match differential
 	// If no total match differential exists it goes to total map differential
@@ -403,7 +446,8 @@ function clinchAhead(teamA, teamB, unplayedMatches)
 	}
 
 	// multiply by 4 because that is the maximum map differential that can be achieved in a single match
-	if(oppH2H.map - (numUnplayedMatches * 4) > 0 || (oppH2H.map - (numUnplayedMatches * 4) === 0 && oppH2H.match - numUnplayedMatches > 0))
+	if( (oppH2H.magicNumber.match === 0 && oppH2H.magicNumber.map === 0) &&
+		(oppH2H.map - (numUnplayedMatches * 4) > 0 || (oppH2H.map - (numUnplayedMatches * 4) === 0 && oppH2H.match - numUnplayedMatches > 0)))
 	{
 		return true;
 	}
