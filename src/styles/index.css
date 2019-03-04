@@ -145,6 +145,7 @@ button.generateLink{
 
 input.link{
 	min-width: 50px;
+	width: 60%;
 }
 
 button.copyLink{
