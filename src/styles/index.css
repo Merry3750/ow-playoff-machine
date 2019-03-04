@@ -144,7 +144,7 @@ button.generateLink{
 }
 
 input.link{
-	min-width: 500px;
+	min-width: 50px;
 }
 
 button.copyLink{
