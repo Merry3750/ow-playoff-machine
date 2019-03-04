@@ -192,6 +192,7 @@ class Match extends React.Component
 		};
 		window.onmouseup = cancelDropdown;
 		e.target.onmouseleave = cancelDropdown;
+		e.target.ontouchend = cancelDropdown;
 	}
 
 	updateStandings()
@@ -298,6 +299,7 @@ class Team extends React.Component
 				style={wrapperStyle} 
 				onClick={this.props.onClick} 
 				onMouseDown={this.props.onMouseDown} 
+				onTouchStart={this.props.onMouseDown} 
 			>	
 				{innerDiv}
 			</div>
