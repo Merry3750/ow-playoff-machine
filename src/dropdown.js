@@ -52,8 +52,20 @@ class Dropdown extends React.Component
 			this.renderOption(0, 0),
 		];
 
-		var backgroundColor = team.primaryColor;
-		var textColor = utils.areContrasting(backgroundColor, team.secondaryColor) ? "#" +team.secondaryColor : utils.isBright(backgroundColor) ? "black" : "white";
+		var primaryColor = team.primaryColor;
+		var secondaryColor = team.secondaryColor;
+		if(!utils.areContrasting(primaryColor, "bbbbbb", 10))
+		{
+			primaryColor = team.secondaryColor;
+			secondaryColor = team.primaryColor;
+			if(!utils.areContrasting(primaryColor, "bbbbbb", 10))
+			{
+				primaryColor = "000000"
+			}
+		}
+
+		var backgroundColor = primaryColor;
+		var textColor = utils.areContrasting(backgroundColor, secondaryColor) ? "#" + secondaryColor : utils.isBright(backgroundColor) ? "black" : "white";
 
 		var wrapperStyle = {
 			left: document.body.scrollLeft + rect.x + 2,
