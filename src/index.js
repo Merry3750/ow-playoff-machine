@@ -345,10 +345,32 @@ class LinkGenerator extends React.Component
 
 	render()
 	{	
+		var value = this.state.url;
+
+		if(value.indexOf("bestAnalyst") == -1)
+		{
+			if(value.indexOf("?") != -1)
+			{
+				value += "&";
+			}
+			else
+			{
+				value += "?";
+			}
+			value += "bestAnalyst=Sideshow";
+			value += "&worstAnalyst=Bren";
+			value += "&bestMemer=Avast";
+			value += "&bestDisneySong=IllMakeAManOutOfYou";
+			value += "&twitchChat=Pepega";
+			value += "&super=bad";
+			value += "&bestBarber=Naomi";
+			value += "&alsoGettingAShoutout=ZP";
+		}
+
 		return (
 			<div className="linkWrapper">
 				<button className="generateLink" onClick={() => this.setState({url: utils.generateURL(g_matchComponents)})}>Generate Link</button>
-				<input id="linkInput" className="link" readOnly value={this.state.url}></input>
+				<input id="linkInput" className="link" readOnly value={value}></input>
 				<button className="copyLink" onClick={() => this.copyLink()}>Copy</button>
 			</div>
 		);
