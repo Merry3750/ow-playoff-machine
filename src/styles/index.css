@@ -29,6 +29,11 @@ body {
 	overflow: auto;
 }
 
+.match.highlighted{
+	border: 2px solid magenta;
+	padding: 0;
+}
+
 .team { 
 	padding: 3px;
 	display: inline-block;

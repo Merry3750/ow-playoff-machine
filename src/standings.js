@@ -29,6 +29,30 @@ class Standings extends React.Component
 		this.setState({mounted: true});
 	}
 
+	handleMouseOver(id)
+	{
+		for(var i = 0; i < this.props.matchComponents.length; i++)
+		{
+			var match = this.props.matchComponents[i].props.match;
+			if(match.competitors[0].id == id || match.competitors[1].id == id)
+			{
+				this.props.matchComponents[i].setState({highlighted: true});
+			}
+			else
+			{
+				this.props.matchComponents[i].setState({highlighted: false});
+			}
+		}
+	}
+
+	handleMouseOff(id)
+	{
+		for(var i = 0; i < this.props.matchComponents.length; i++)
+		{
+			this.props.matchComponents[i].setState({highlighted: false});
+		}
+	}
+
 	render()
 	{
 		//console.log(this.props)
@@ -151,7 +175,7 @@ class Standings extends React.Component
 		{
 			var seed = 0;
 			var clinch = CLINCH_NONE;
-			if (!divisions.includes(teams[i].competitor.owl_division))// || this.props.type !== "OWL_Overall")
+			if (!divisions.includes(teams[i].competitor.owl_division))
 			{
 				divisions.push(teams[i].competitor.owl_division);
 				seed = ++lastDivisionLeadSeed;
@@ -167,7 +191,7 @@ class Standings extends React.Component
 						}
 					}
 				}
-				if (clinch === CLINCH_NONE)// && this.props.type === "OWL_Overall")
+				if (clinch === CLINCH_NONE)
 				{
 					clinch = CLINCH_DIVISION;
 					for(var j = i + 1; j < teams.length; j++)
@@ -285,7 +309,11 @@ class Standings extends React.Component
 				default:
 					break;
 			}
-			standingPlaces.push(<StandingPlace key={teams[i].competitor.id} team={teams[i]} seed={seed} type={this.props.type} clinch={clinch}/>);
+
+			var teamID = teams[i].competitor.id;
+			
+
+			standingPlaces.push(<StandingPlace key={teamID} team={teams[i]} seed={seed} type={this.props.type} clinch={clinch} mouseOver={(i) => this.handleMouseOver(i)} mouseOff={(i) => this.handleMouseOff(i)} />);
 		}
 
 		var tableFooterText = [];
@@ -359,6 +387,22 @@ class StandingPlace extends React.Component
 		super(props);
 	}
 
+	onMouseOver()
+	{
+
+	}
+
+	onMouseOff()
+	{
+		if(this.props.type === "OWL_Overall")
+		{
+			for(var i = 0; i < this.props.matchComponents.length; i++)
+			{
+				this.props.matchComponents[i].setState({highlighted: false});
+			}
+		}
+	}
+
 	render()
 	{
 		var team = this.props.team.competitor;	
@@ -395,7 +439,7 @@ class StandingPlace extends React.Component
 		};
 
 		return (
-			<tr className="standingsRow">
+			<tr className="standingsRow" onMouseOver={(c) => this.props.mouseOver(team.id)} onMouseOut={(c) => this.props.mouseOff(team.id)}>
 				<td className="standingsColumnName">
 					<div>	
 						<div className="image" style={imgStyle} />

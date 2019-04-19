@@ -29,7 +29,6 @@ class Schedule extends React.Component
 				for(var j = 0; j < stage.matches.length; j++)
 				{
 					var match = stage.matches[j];
-					console.log(match);
 					if(match.scores[0].value == 0 && match.scores[1].value == 0)
 					{
 						this.stageTabComponents[active].setState({active: true});
@@ -70,7 +69,7 @@ class Schedule extends React.Component
 			var stage = this.props.schedule.data.stages[i];
 			if(stage.slug.startsWith("stage"))
 			{
-				stageTabList.push(<StageTab key={stage.id} stage={stage} ref={(s) => {this.stageTabComponents.push(s)}} onClick={(c) => this.handleTabClick(c) }/>);
+				stageTabList.push(<StageTab key={stage.id} stage={stage} ref={(s) => {this.stageTabComponents.push(s)}} onClick={(c) => this.handleTabClick(c)} />);
 				stageList.push(<Stage key={stage.id} stage={stage} teams={this.props.teams} ref={(s) => {this.stageComponents.push(s)}} />);
 			}
 		}
@@ -106,7 +105,22 @@ class Stage extends React.Component
 
 	addMatchComponent(component)
 	{
-		this.matchComponents.push(component);
+		if(component)
+		{
+			for(var i = 0; i < this.matchComponents.length; i++)
+			{
+				if(this.matchComponents[i].props.match.id == component.props.match.id)
+				{
+					this.matchComponents[i] = component;
+					if(this.standings && this.standings.state.mounted)
+					{
+						this.standings.props.matchComponents = this.matchComponents;
+					}
+					return;
+				}
+			}
+			this.matchComponents.push(component);
+		}
 	}
 
 	updateStandings()
@@ -165,7 +179,7 @@ class Week extends React.Component
 			var match = this.props.week.matches[i];
 			if(match.conclusionStrategy === "MINIMUM")
 			{
-				var matchComponent = <Match key={match.id} match={match} updateStandings={() => this.props.updateStandings()}/>;
+				var matchComponent = <Match key={match.id} match={match} ref={(c) => this.props.addMatchComponent(c)} updateStandings={() => this.props.updateStandings()}/>;
 				this.props.addMatchComponent(matchComponent);
 				matchList.push(matchComponent);
 			}
@@ -183,6 +197,7 @@ class Match extends React.Component
 		super(props);
 		g_matchComponents.push(this);
 		this.children = [];
+		this.state = {highlighted: false}
 	}
 
 	handleclick(left)
@@ -234,8 +249,11 @@ class Match extends React.Component
 		}
 		var id="match_" + match.id;
 
+		var classname = "match"
+		classname += (this.state.highlighted ? " highlighted" : "");
+
 		return (
-			<div className="match" id={id}>
+			<div className={classname} id={id}>
 				<Team 
 					key={match.competitors[0].id} 
 					team={match.competitors[0]} 
