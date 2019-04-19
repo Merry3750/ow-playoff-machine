@@ -151,7 +151,7 @@ class Standings extends React.Component
 		{
 			var seed = 0;
 			var clinch = CLINCH_NONE;
-			if (!divisions.includes(teams[i].competitor.owl_division) || this.props.type !== "OWL_Overall" )
+			if (!divisions.includes(teams[i].competitor.owl_division))// || this.props.type !== "OWL_Overall")
 			{
 				divisions.push(teams[i].competitor.owl_division);
 				seed = ++lastDivisionLeadSeed;
@@ -167,7 +167,7 @@ class Standings extends React.Component
 						}
 					}
 				}
-				if (clinch === CLINCH_NONE && this.props.type === "OWL_Overall")
+				if (clinch === CLINCH_NONE)// && this.props.type === "OWL_Overall")
 				{
 					clinch = CLINCH_DIVISION;
 					for(var j = i + 1; j < teams.length; j++)

@@ -20,6 +20,26 @@ class Schedule extends React.Component
 
 	componentDidMount()
 	{
+		var active = 0;
+		for(var i = 0; i < this.props.schedule.data.stages.length; i++)
+		{
+			var stage = this.props.schedule.data.stages[i];
+			if(stage.slug.startsWith("stage"))
+			{
+				for(var j = 0; j < stage.matches.length; j++)
+				{
+					var match = stage.matches[j];
+					console.log(match);
+					if(match.scores[0].value == 0 && match.scores[1].value == 0)
+					{
+						this.stageTabComponents[active].setState({active: true});
+						this.stageComponents[active].setState({active: true});
+						return;
+					}
+				}
+				active++;
+			}
+		}
 		this.stageTabComponents[0].setState({active: true});
 		this.stageComponents[0].setState({active: true});
 	}
