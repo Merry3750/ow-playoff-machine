@@ -387,22 +387,6 @@ class StandingPlace extends React.Component
 		super(props);
 	}
 
-	onMouseOver()
-	{
-
-	}
-
-	onMouseOff()
-	{
-		if(this.props.type === "OWL_Overall")
-		{
-			for(var i = 0; i < this.props.matchComponents.length; i++)
-			{
-				this.props.matchComponents[i].setState({highlighted: false});
-			}
-		}
-	}
-
 	render()
 	{
 		var team = this.props.team.competitor;	
