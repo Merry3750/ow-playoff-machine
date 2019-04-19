@@ -30,8 +30,8 @@ body {
 }
 
 .match.highlighted{
-	border: 2px solid magenta;
-	padding: 0;
+	background-color: magenta;
+	border-radius: 3px;
 }
 
 .team { 
