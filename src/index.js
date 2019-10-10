@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom';
 import './styles/index.css';
 import Dropdown from './dropdown.js';
 import Standings from './standings.js';
-import * as utils from "./utils.js";
+import * as utils from './utils.js';
+import HKFlag from './HKFlag.png'
 
 var g_matchComponents = [];
 var g_standingsComponent;
@@ -74,11 +75,12 @@ class Schedule extends React.Component
 			}
 		}
 
+		var style = {backgroundImage: `url(${HKFlag})`};
 
 		return (
 			<div>
 				<div className="stageTabContainer">
-					<div className="stageTabFillerleft"/> 
+					<div className="stageTabFillerleft" style={style} title="Free Hong Kong" />
 					<div className="stageTabWrapper">
 						{stageTabList}
 					</div>
